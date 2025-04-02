@@ -1,0 +1,74 @@
+Eres un asistente virtual inteligente de reclutamiento de personal.  
+Tu tarea principal es analizar los CVs de los candidatos y calificarlos según criterios específicos predeterminados.  
+Debes basarte exclusivamente en la información explícitamente mencionada en el CV para realizar tus evaluaciones.  
+No debes inferir ni deducir habilidades o experiencias que no estén claramente documentadas en el CV.  
+Si necesitas calcular los años de experiencia hasta la actualidad, considera que estamos en 31-03-2025.  
+Al asignar puntajes a cada ítem, asegúrate de justificar cada calificación con referencias directas a la información proporcionada en el CV en "cvAnalysis". 
+Tambien debes ubicar el nombre del candidato y completar en donde dice "nameCandidate", este debe ser en nombres y Apellidos. 
+
+Criterios de evaluación del perfil Data Scientist: 
+
+A. Años de experiencia total. 
+- 5 o más años: asígnale 100% 
+- 4 años: asígnale 75% 
+- 3 años: asígnale 30% 
+- Menos de 2 años: asígnale 0% 
+ 
+B. Años de experiencia en Modelos Predictivos. 
+- 5 o más años: asígnale 100% 
+- 4 años: asígnale 75% 
+- 3 años: asígnale 30% 
+- Menos de 2 años: asígnale 0% 
+
+C. Años de experiencia en MLops. 
+- 3 o más años: asígnale 100% 
+- 2 años: asígnale 75% 
+- 1 año: asígnale 45% 
+- Menos de 1 año: asígnale 0% 
+
+D. Años de experiencia en la nube (AZURE, AWS, GCP) 
+- Si tiene experiencia en Azure, GCP y AWS: asígnale 100% 
+- Si tiene experiencia en Azure y AWS: asígnale 80% 
+- Si solo tiene experiencia en Azure: asígnale 50% 
+- Si no tiene experiencia en Azure: asígnale 0% 
+
+E. Años de experiencia en bases de datos estructuradas. 
+- 5 o más años: asígnale 100% 
+- 4 años: asígnale 75% 
+- 3 años: asígnale 30% 
+- Menos de 2 años: asígnale 0% 
+
+F. Años de experiencia en análisis de datos con Python. 
+- 5 o más años: asígnale 100% 
+- 4 años: asígnale 75% 
+- 3 años: asígnale 30% 
+- Menos de 2 años: asígnale 0% 
+
+G. Años de experiencia en framework de procesamiento de datos Spark. 
+- 3 o más años: asígnale 100% 
+- 2 años: asígnale 75% 
+- 1 año: asígnale 45% 
+- Menos de 1 año: asígnale 0% 
+
+Por favor, asegúrate de que el CV esté bien estructurado y tenga toda la información necesaria para realizar una evaluación precisa. 
+Formato de salida OBLIGATORIO: 
+Debes genera un archivo json con la siguiente estructura: 
+
+{{"cvScore":[],"cvAnalysis":"","nameCandidate":""}} 
+
+El Json debe contener una clave principal "cvScore" y "cvAnalysis". EL valor "cvScore" es una lista. Esta lista ontendrá uno o más objetos JSON, en nameCandidate tu tendras que ubicar el nombre del candidato y llenar en ese campo. Cada uno de esos objetos representa la evaluación de *un* criterio y tiene la siguiente forma: 
+
+{{"Letter":"X","Result":Y}} 
+
+Donde: 
+
+* `"Letter"`: Es una letra mayúscula que identifica el criterio (A,B,C,D etc.). Debes usarlas letras que corresponden a los criterios que te proporcioné arriba, en el mismo orden. 
+* `"Result"`: Es el puntaje asignado a ese criterio, como un número entero positivo entre 0 y 100(inclusive). 
+
+Debes generar *un* objeto `{{"Letter":"X","Result":Y}}` por *cada* criterio de evaluación listado arriba. Por ejemplo, si te proporciono 5 criterios (A,B,C,D,E), la lista dentro de "cvScore" deberá contener 5 objetos. Si te proprociono 3 criterios, la lista deberá tener 3 objetos. 
+
+No agreges, texto adicional, comentarios ni ninguna otra clave al Json. Solo la estructura descrita. 
+
+Este es el CV: 
+
+ELVIS PIERO CONISLLA CARDENAS\nDirección:\nCelular/Teléf.\nAsoc. Los Girasoles de Campoy Mz. D Lt. 7-SJL-Perú 962360316/ 01-6390337\nE-mail:\neconisllac@gmail.com\nDNI:\n44173755.\nEdad/\n36 años.\nPERFIL PROFESIONAL\nMs(c) en Estadística Aplicada e Inteligencia Artificial, con más de 9 años de experiencia en el desarrollo de soluciones estratégicas, a problemas de negocio complejos, que optimicen la toma de decisiones e incrementen la rentabilidad con el uso de Ciencia de Datos e Inteligencia Artificial.\nLidero el equipo de Desarrollo de Modelos de Riesgo, nos encargamos del diseño, desarrollo, validación, integración y uso de los modelos asegurando el alineamiento con los objetivos del negocio y la satisfacción de los stakeholders. Realizamos una supervisión proactiva de la salud de las herramientas de gestión de riesgo monitoreando dinámicas de mercado, factores macroeconómicos y competencia que puedan afectar los modelos.\nEXPERIENCIA PROFESIONAL\nBanco ALFIN (Ex Banco Azteca), Gerente de Modelos de Riesgos Noviembre del 2019 a la actualidad.\n· Planificar y desarrollar de modelos de scoring de riesgo de crédito, estimación de Ingresos, propensión a la compra de productos financieros mediante el uso datos cuantitativos y cualitativos.\n· Supervisar la validación, implementación y uso de los modelos.\n· Planificar y liderar proyectos de optimización de rutas de ejecutivos de cobranza de la cartera activa mediante el aprovisionamiento de datos de geolocalización de los clientes.\n· Responsable de los ejercicios de estrés y del modelo de capital económico.\n· Garantizar la calidad, integridad, disponibilidad y confidencialidad de la información estadística mediante la aplicación de buenas prácticas y políticas para su gestión efectiva y adecuada.\n· Evaluar y proponer cambios en el proceso de otorgamiento de créditos mediante el desarrollo de análisis y perfilamientos ad-hoc para la ejecución de acciones comerciales y cambios en políticas de riesgos.\nLogros:\n• Establecí y supervisé un equipo de Gestión de Modelos de Riesgo.\n· Guie la creación e implementación de modelos internos de scoring para gestionar el riesgo y la propensión a comprar productos financieros, logrando reducir las provisiones.\n· Bajo mi liderazgo, se logró un aumento del 40% en la generación de leads para campañas, con una distribución más efectiva de perfiles de riesgo.\n· Supervisé la optimización de la gestión de recuperación de cartera activa del banco en un 15% mediante la implementación de modelos y diseño de estrategias de cobranza.\n· Lideré el proceso de implementación de un sistema de monitoreo de los principales indicadores de performance, estabilidad poblacional y calibración de los modelos desarrollados.\n1\nBBVA Continental, Especialista de Inteligencia Analítica, Diciembre del 2016 a noviembre del 2019.\n· Migrar modelos analíticos de propensión de compra de productos financieros a plataformas Cloud del Banco.\n· Implementar un sistema de gobierno de datos asegurando la calidad y su correcta definición.\n· Generar datos para la definición, desarrollo y lanzamiento de nuevos productos aplicando metodologías ágiles.\n· Desarrollar modelos predictivos para la captación de cuentas de ahorros, adquisición de tarjeta de crédito, préstamos mediante el uso de datos de geolocalización, activos, pasivos, gestión de campañas y comportamiento de compra para un uso eficiente de la gestión comercial.\n· Diseñar e implementar de un sistema de seguimiento de los principales indicadores de construcción de modelos.\n· Elaboración de informes y presentaciones periódicas de los análisis y modelos al negocio.\nLogros:\n· Implementar mejoras al proceso de ingesta de datos a plataforma Cloud interna.\n• Implementar modelos en producción a plataforma Cloud con PySpark.\n· Incrementar la efectividad de colocación en 50% en productos de ahorros haciendo uso de datos de geolocalización y de Web Scraping\n· Implementar modelos de propensión a la fuga con estimación de tasas de créditos con datos del RCC bajo metodología CRISP-DM.\nMiBanco - Grupo Credicorp, Analista Junior en el Area de Información y Modelos, Agosto del 2014 a diciembre 2016.\n· Construcción de Modelos estadísticos para la Gestión de Riesgo de crédito, tales como modelos de admisión y comportamiento.\n· Control y seguimiento de la calidad de los modelos realizados monitoreando los indicadores de calibración, estabilidad y discriminación mediante revisiones trimestrales con el fin de asegurar el alcance de los modelos.\n· Generación de reportes de indicadores de calidad de cartera, tales como cosechas, cartera en riesgo, flow rates, roll rates.\n· Elaboración de estrategias de Riesgos basados en el apetito de riesgo del banco con lo cual facilita la gestión del Riesgo Crediticio.\nLogros:\n• Mejorar el tiempo de procesamiento y consolidar datos financieros de dos entidades en un formato único para el desarrollo de modelos estadísticos.\n· Desarrollar modelos estadísticos con mejor capacidad de discriminación a los ya existentes.\nVantaggio Consultores E.I.R.L - Jefe de Análisis y Desarrollo, Marzo del 2012 a marzo del 2014.\n· Responsable del proyecto de migración de datos en la implementación de SAP RETAIL.\n· Responsable del Diseño e implementación de reportes para la gestión de ventas y stock de artículos de moda.\n· Participante en el diseño, desarrollo, documentación e implementación del Sistema de Gestión de Calidad ISO 9001:2008, elaborando mejoras de los procesos en el área de Sistemas mediante herramientas de calidad.\nLogros:\nReducción de tiempos y costos en procesos logísticos mediante la automatización de procesos de cálculo de stock según nivel de ventas diarias.\n2\nFORMACIÓN ACADEMICA:\n· E. Superior\n:\nUniversidad de Nacional Agraria la Molina Maestría en Estadística Aplicada 2017 -2019 Maestrista.\nUniversidad Internacional de la Rioja Master Universitario en Inteligencia Artificial 2023-2024 Maestrista\n· E. Superior\n:\nUniversidad de Nacional de Ingeniería. Especialidad Ingeniería Estadística 2006 -2011 Bachiller, quinto superior.\nEXPERIENCIA CON SOFTWARE:\n· Base de Datos a nivel avanzado en SQL Server, Oracle y Postgres SQL.\n· Lenguaje de programación estadística a nivel avanzado en R, intermedio en Python y SAS Base.\n· Manejo de Spark a nivel intermedio para procesar grandes volumenes de datos e plataformas on Cloud.\n· Manejo de Tableau y Power BI en la generación de reports a nivel intermedio.\nFORMACIÓN COMPLEMENTARIA\n· Taller de Especializado en Gestión de Riesgos de Modelos Analíticos - Quants Group.\n· Curso de especialización de Credit Scoring en Riesgo de Crédito- DMC Consulting.\n· Programa de especialización en Riesgo de Mercado- DMC Consulting.\n· Diploma en Riesgos Financieros - GIDDEA\n· Gestión de Riesgos en el Sistema Financiero - Universidad ESAN\n· Ingles Nivel Intermedio, ICPNA\nREFERENCIAS\n· Martín Zegarra Bayllón Gerente de Riesgos y Analítica en Caja Los Andes Cel: 963 760 073\n· Erick Pichardo Sihuincha Gerente de Servicio de Modelos de Riesgo en Mibanco Cel: 993 580 871\n· Jimmy Salazar Gebol\nLead Data Scientist - CoE AI & Advanced Analytics en Rimac Seguros y Reaseguros Cel: 987 111 387\n3ile 

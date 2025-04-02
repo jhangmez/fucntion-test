@@ -190,7 +190,8 @@ class DocumentIntelligenceAdapter:
 
             endpoint=self.endpoint, 
 
-            credential=AzureKeyCredential(self.api_key) 
+            credential=AzureKeyCredential(self.api_key),
+           
 
         ) 
 
@@ -234,7 +235,7 @@ class DocumentIntelligenceAdapter:
 
                 "prebuilt-read", 
 
-                body=file_stream 
+                AnalyzeDocumentRequest(bytes_source=file_stream.read())
 
             ) 
 

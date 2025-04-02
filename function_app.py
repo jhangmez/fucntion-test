@@ -263,3 +263,89 @@ def move_blob_to_folder(blob_service_client: BlobServiceClient, source_container
          logging.warning(f"[{blob_name}] Resource not found during move to error folder operation.")
     except Exception as e:
         logging.exception(f"[{blob_name}] Failed to move blob to error folder '{error_folder}': {e}")
+
+@app.route(
+    route="upload-cv",
+    methods=[func.HttpMethod.POST],
+    auth_level=func.AuthLevel.FUNCTION
+)
+def upload_cv_http_trigger(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Azure Function triggered by an HTTP POST request to upload a CV file (v2 model).
+    Saves the file to the 'candidates' blob container.
+    """
+    logging.info('Python HTTP trigger function processed a request to upload CV.')
+
+    file_content = None
+    filename = None
+    content_type = 'application/octet-stream' # Default
+
+    try:
+        # ... (misma lógica para obtener file_content, filename, content_type que antes) ...
+        # Priorizar form-data
+        file_from_form = req.files.get('file')
+
+        if file_from_form:
+            filename = os.path.basename(file_from_form.filename) # Sanitizar
+            file_content = file_from_form.read()
+            content_type = file_from_form.mimetype or content_type # Obtener mimetype si está disponible
+            logging.info(f"Received file '{filename}' via form-data ({len(file_content)} bytes), type: {content_type}")
+        else:
+            # Si no está en form-data, intentar leer el cuerpo directamente
+            file_content = req.get_body()
+            if not file_content:
+                 return func.HttpResponse(
+                       "Please pass a file in the request body or as form-data with key 'file'.",
+                       status_code=400
+                 )
+            # Intentar obtener nombre de header o usar default
+            filename = os.path.basename(req.headers.get('X-Filename', 'uploaded_cv.pdf')) # Sanitizar
+            # Intentar obtener content-type del header
+            content_type = req.headers.get('Content-Type', content_type)
+            logging.info(f"Received file '{filename}' via request body ({len(file_content)} bytes), type: {content_type}")
+
+        if not filename:
+             filename = "default_uploaded_cv.pdf"
+             logging.warning("Could not determine filename, using default.")
+
+
+        # --- Guardar en Blob Storage ---
+        try:
+            connection_string = os.environ[CONNECTION_STRING_ENV_VAR]
+            blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+            blob_client = blob_service_client.get_blob_client(container=CANDIDATES_CONTAINER, blob=filename)
+
+            # ***** INICIO DE LA CORRECCIÓN *****
+            # Crear un objeto ContentSettings
+            blob_content_settings = ContentSettings(content_type=content_type)
+            # Puedes añadir otras propiedades si las necesitas, por ejemplo:
+            # blob_content_settings = ContentSettings(content_type=content_type, content_language='es-ES')
+
+            logging.info(f"Uploading '{filename}' to '{CANDIDATES_CONTAINER}' container with content_settings: {blob_content_settings}")
+
+            # Pasar el objeto ContentSettings en lugar del diccionario
+            blob_client.upload_blob(
+                file_content,
+                overwrite=True,
+                content_settings=blob_content_settings # <-- Pasar el objeto corregido
+            )
+            # ***** FIN DE LA CORRECCIÓN *****
+
+            logging.info(f"Successfully uploaded '{filename}'. Blob trigger will process it.")
+
+            return func.HttpResponse(
+                f"File '{filename}' uploaded successfully to '{CANDIDATES_CONTAINER}'. It will be processed shortly.",
+                status_code=200
+            )
+
+        except KeyError:
+             logging.exception(f"Environment variable '{CONNECTION_STRING_ENV_VAR}' not found.")
+             return func.HttpResponse("Server configuration error (Storage connection missing).", status_code=500)
+        except Exception as e:
+            logging.exception(f"Error uploading file '{filename}' to blob storage: {e}")
+            # Aquí es donde probablemente viste el error original
+            return func.HttpResponse(f"Error saving file to storage: {e}", status_code=500)
+
+    except Exception as e:
+         logging.exception("Unexpected error processing HTTP upload request.")
+         return func.HttpResponse("An internal server error occurred during upload processing.", status_code=500)

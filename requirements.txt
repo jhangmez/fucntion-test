@@ -9,3 +9,4 @@ azure-core
 azure-ai-documentintelligence
 azure-core
 azure-storage-blob
+pydantic

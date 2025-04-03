@@ -5,7 +5,7 @@ import os # Para obtener variables si las tienes
 function_url = "http://localhost:7071/api/upload-cv"
 # Intenta obtener la llave desde variable de entorno o pégala directamente
 api_key = os.getenv("FUNC_IARC_UPLOAD_KEY")
-file_path = "./data/cvs/Jesus_Juarez.pdf"
+file_path = "./data/cvs/Ezequiel_Vidal.pdf"
 file_name = os.path.basename(file_path)
 
 # --- Preparar la solicitud ---

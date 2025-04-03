@@ -1,7 +1,7 @@
 import logging
 import os
 import json
-import time 
+import time
 from typing import Optional
 
 import azure.functions as func
@@ -12,10 +12,11 @@ try:
     from src.infrastructure.ocr.document_intelligence_adapter import DocumentIntelligenceAdapter, DocumentIntelligenceError, NoContentExtractedError
     from src.infrastructure.openai.azure_openai_adapter import AzureOpenAIAdapter, OpenAIError
     from src.shared.prompt_system import prompt_system
+    from src.shared.extract_and_validate_cv_data import extract_and_validate_cv_data_from_json
     # Importa cualquier excepción personalizada de dominio que uses
     # from src.domain.exceptions import FileProcessingError
 except ImportError as e:
-    logging.critical(f"CRITICAL: Failed to import application modules during startup: {e}. Check __init__.py files and dependencies.")
+    logging.critical(f"CRÍTICO: Falló la importación de módulos de la aplicación durante el inicio: {e}. Verifique los archivos __init__.py y las dependencias.")
     # Define clases dummy para permitir que el resto del archivo se analice si falla la importación
     class DocumentIntelligenceAdapter: pass
     class DocumentIntelligenceError(Exception): pass
@@ -24,6 +25,7 @@ except ImportError as e:
     class OpenAIError(Exception): pass
     def prompt_system(profile, criterios, cv_candidato, current_date=None): return ""
     # class FileProcessingError(Exception): pass
+    def extract_and_validate_cv_data_from_json(json_string: str): return None, None, None
 
 
 # Define la aplicación de funciones v2 GLOBALMENTE
@@ -86,18 +88,18 @@ CANDIDATES_CONTAINER = "candidates"
 def process_candidate_cv(inputblob: func.InputStream):
     """
     Azure Function triggered by a blob in 'candidates' container.
-    Extracts text (DI), analyzes (OpenAI), and saves result to 'resultado'.
+    Extracts text (DI), analyzes (OpenAI), validates data, and saves result to 'resultado'.
     Moves original blob on error, deletes on success.
     """
     if not inputblob or not inputblob.name:
-        logging.error("Blob trigger invoked without valid input blob or name.")
+        logging.error("El disparador de blob se invocó sin un blob de entrada o un nombre válido.")
         return
 
-    blob_full_path = inputblob.name # E.g., "candidates/cv_juan.pdf"
-    file_name = os.path.basename(blob_full_path) # E.g., "cv_juan.pdf"
+    blob_full_path = inputblob.name
+    file_name = os.path.basename(blob_full_path)
 
-    logging.info(f"--- Processing started for blob: {blob_full_path} ---")
-    logging.info(f"File Name: {file_name}, Size: {inputblob.length} Bytes")
+    logging.info(f"--- Comenzó el procesamiento del blob: {blob_full_path} ---")
+    logging.info(f"Nombre del archivo: {file_name}, Tamaño: {inputblob.length} Bytes")
 
     blob_service_client = None # Inicializar fuera del try para usar en finally
     processed_successfully = False # Flag para controlar el borrado final
@@ -106,102 +108,107 @@ def process_candidate_cv(inputblob: func.InputStream):
         # Obtener cadena de conexión
         storage_connection_string = os.environ[CONNECTION_STRING_ENV_VAR]
         if not storage_connection_string:
-             raise ValueError(f"Environment variable '{CONNECTION_STRING_ENV_VAR}' is missing.")
+             raise ValueError(f"La variable de entorno '{CONNECTION_STRING_ENV_VAR}' no existe.")
 
         # Crear clientes y adaptadores
         blob_service_client = BlobServiceClient.from_connection_string(storage_connection_string)
         doc_intel_adapter = DocumentIntelligenceAdapter()
         openai_adapter = AzureOpenAIAdapter()
         output_container_client = blob_service_client.get_container_client(OUTPUT_CONTAINER_NAME)
-        logging.info(f"[{file_name}] Adapters and clients initialized successfully.")
+        logging.info(f"[{file_name}] Adaptadores y clientes inicializados correctamente.")
 
     except (ValueError, ImportError, KeyError) as e:
-        logging.exception(f"[{file_name}] CRITICAL: Failed to initialize adapters/clients. Configuration error?: {e}")
+        logging.exception(f"[{file_name}] CRÍTICO: Falló la inicialización de adaptadores/clientes. ¿Error de configuración?: {e}")
         # No se puede continuar ni mover el archivo si falla la inicialización básica
         return
     except Exception as e:
-        logging.exception(f"[{file_name}] CRITICAL: Unexpected error during initialization: {e}")
+        logging.exception(f"[{file_name}] CRÍTICO: Error inesperado durante la inicialización: {e}")
         return
 
-    # --- Lógica de Procesamiento Principal ---
     try:
         # Paso 1: Extraer texto con Document Intelligence
-        logging.info(f"[{file_name}] Calling Document Intelligence...")
+        logging.info(f"[{file_name}] Llamando a Document Intelligence...")
         extracted_text = doc_intel_adapter.analyze_cv(inputblob)
-        logging.info(f"[{file_name}] Document Intelligence finished. Extracted {len(extracted_text)} characters.")
+        logging.info(f"[{file_name}] Document Intelligence finalizó. Se extrajeron {len(extracted_text)} caracteres.")
 
         # Paso 2: Preparar y llamar a Azure OpenAI
-        logging.info(f"[{file_name}] Generating OpenAI prompt...")
+        logging.info(f"[{file_name}] Generando prompt de OpenAI...")
         system_prompt = prompt_system(
             profile=TARGET_PROFILE,
             criterios=EVALUATION_CRITERIA,
             cv_candidato=extracted_text
         )
-        logging.info(f"[{file_name}] Calling Azure OpenAI...")
+        logging.info(f"[{file_name}] Llamando a Azure OpenAI...")
         analysis_result = openai_adapter.get_completion(system_message=system_prompt, user_message="")
-        logging.info(f"[{file_name}] Azure OpenAI finished.")
+        logging.info(f"[{file_name}] Azure OpenAI finalizó.")
 
+        # Paso 3: Validar la respuesta de OpenAI
+        logging.info(f"[{file_name}] Validando el resultado de Azure OpenAI...")
         try:
-            # Solo intentar cargar, no necesitamos el objeto parseado aquí
-            json.loads(analysis_result)
-            logging.info(f"[{file_name}] OpenAI result appears to be valid JSON.")
-        except (json.JSONDecodeError, TypeError) as json_e:
-            logging.error(f"[{file_name}] OpenAI result is NOT valid JSON or not a string: {json_e}. Result snippet: {str(analysis_result)[:500]}...")
-            # Considerar esto un error de OpenAI
-            raise OpenAIError(f"OpenAI did not return valid JSON. Snippet: {str(analysis_result)[:100]}")
+            cv_score, cv_analysis, candidate_name = extract_and_validate_cv_data_from_json(analysis_result)
+            logging.info(f"[{file_name}] Resultado de la validación: cv_score={cv_score is not None}, cv_analysis={cv_analysis is not None}, candidate_name={candidate_name is not None}")
+        except (json.JSONDecodeError, TypeError) as e:
+            logging.error(f"[{file_name}] Error al decodificar o validar el JSON de OpenAI: {e}", exc_info=True)
+            raise OpenAIError(f"Error al decodificar o validar el JSON de OpenAI: {e}")  # Raise para mover el blob a error
 
-        # Paso 4: Guardar resultado final en 'resultado'
+        # Paso 4: Crear el diccionario con los resultados validados
+        final_result = {
+            "cvScore": cv_score,
+            "cvAnalysis": cv_analysis,
+            "nameCandidate": candidate_name
+        }
+
+        # Paso 5: Guardar resultado final en 'resultado'
         output_filename = f"analysis_{os.path.splitext(file_name)[0]}.json"
         output_blob_client = output_container_client.get_blob_client(output_filename)
-        logging.info(f"[{file_name}] Saving final analysis to '{OUTPUT_CONTAINER_NAME}/{output_filename}'...")
+        logging.info(f"[{file_name}] Guardando el análisis final en '{OUTPUT_CONTAINER_NAME}/{output_filename}'...")
         output_blob_client.upload_blob(
-            analysis_result.encode('utf-8'),
+            json.dumps(final_result, ensure_ascii=False, indent=4).encode('utf-8'),  # Convertir a JSON y codificar
             overwrite=True,
             content_settings=ContentSettings(content_type='application/json; charset=utf-8')
         )
-        logging.info(f"[{file_name}] Final analysis successfully saved.")
+        logging.info(f"[{file_name}] El análisis final se guardó correctamente.")
         processed_successfully = True
 
     # --- Manejo de Errores ---
     except NoContentExtractedError as e:
-        logging.warning(f"[{file_name}] No content extracted by Document Intelligence: {e}")
+        logging.warning(f"[{file_name}] Document Intelligence no extrajo contenido: {e}")
         move_blob_to_folder(blob_service_client, CANDIDATES_CONTAINER, file_name, "error/no_content")
     except DocumentIntelligenceError as e:
-        logging.error(f"[{file_name}] Error during Document Intelligence analysis: {e}", exc_info=True)
+        logging.error(f"[{file_name}] Error durante el análisis de Document Intelligence: {e}", exc_info=True)
         move_blob_to_folder(blob_service_client, CANDIDATES_CONTAINER, file_name, "error/document_intelligence")
     except OpenAIError as e:
-        logging.error(f"[{file_name}] Error during Azure OpenAI analysis or validation: {e}", exc_info=True)
+        logging.error(f"[{file_name}] Error durante el análisis o la validación de Azure OpenAI: {e}", exc_info=True)
         move_blob_to_folder(blob_service_client, CANDIDATES_CONTAINER, file_name, "error/openai")
     except (OSError, HttpResponseError, Exception) as e:
          # Captura errores al guardar el resultado final u otros errores inesperados
-         logging.exception(f"[{file_name}] Error saving final result or other unexpected error during processing: {e}")
+         logging.exception(f"[{file_name}] Error al guardar el resultado final u otro error inesperado durante el procesamiento: {e}")
          # Mover a una carpeta genérica de error de procesamiento si no es de DI u OpenAI
          move_blob_to_folder(blob_service_client, CANDIDATES_CONTAINER, file_name, "error/processing")
     # Nota: No necesitamos un except para Exception general aquí si el anterior lo captura
 
-    # --- Limpieza Final ---
     finally:
         if processed_successfully:
-            logging.info(f"[{file_name}] Process completed successfully. Attempting to delete original blob.")
+            logging.info(f"[{file_name}] El proceso se completó correctamente. Intentando borrar el blob original.")
             try:
                 source_blob_client = blob_service_client.get_blob_client(CANDIDATES_CONTAINER, file_name)
                 source_blob_client.delete_blob(delete_snapshots="include")
-                logging.info(f"[{file_name}] Original blob '{CANDIDATES_CONTAINER}/{file_name}' deleted successfully.")
+                logging.info(f"[{file_name}] Blob original '{CANDIDATES_CONTAINER}/{file_name}' borrado correctamente.")
             except ResourceNotFoundError:
-                 logging.warning(f"[{file_name}] Original blob not found for deletion (might have been moved due to prior error or already deleted).")
+                 logging.warning(f"[{file_name}] No se encontró el blob original para borrar (podría haberse movido debido a un error anterior o ya se ha borrado).")
             except Exception as e:
-                 logging.error(f"[{file_name}] Failed to delete original blob '{CANDIDATES_CONTAINER}/{file_name}' after successful processing: {e}")
+                 logging.error(f"[{file_name}] No se pudo borrar el blob original '{CANDIDATES_CONTAINER}/{file_name}' después de un procesamiento exitoso: {e}")
         else:
             # Si no fue exitoso, el archivo ya debería haber sido movido por un bloque except
-            logging.warning(f"[{file_name}] Process did not complete successfully. Original blob should be in an error folder.")
+            logging.warning(f"[{file_name}] El proceso no se completó correctamente. El blob original debería estar en una carpeta de error.")
 
-        logging.info(f"--- Processing finished for blob: {blob_full_path} ---")
+        logging.info(f"--- Finalizó el procesamiento del blob: {blob_full_path} ---")
 
 
 def move_blob_to_folder(blob_service_client: BlobServiceClient, source_container: str, blob_name: str, error_folder: str):
     """Copia un blob a una 'carpeta' de error dentro del mismo contenedor y lo elimina del origen."""
     if not blob_service_client:
-         logging.error(f"[{blob_name}] Cannot move blob to error folder because BlobServiceClient is not initialized.")
+         logging.error(f"[{blob_name}] No se puede mover el blob a la carpeta de error porque BlobServiceClient no está inicializado.")
          return
 
     source_blob_url = f"{blob_service_client.url}{source_container}/{blob_name}"
@@ -211,14 +218,14 @@ def move_blob_to_folder(blob_service_client: BlobServiceClient, source_container
         destination_blob_client = blob_service_client.get_blob_client(source_container, destination_blob_name)
         source_blob_client = blob_service_client.get_blob_client(source_container, blob_name)
 
-        logging.info(f"[{blob_name}] Attempting to move to '{error_folder}' folder within '{source_container}'...")
+        logging.info(f"[{blob_name}] Intentando mover a la carpeta '{error_folder}' dentro de '{source_container}'...")
 
         # Verificar si el origen existe
         try:
             source_props = source_blob_client.get_blob_properties()
-            logging.info(f"[{blob_name}] Source blob found. Starting copy to error folder...")
+            logging.info(f"[{blob_name}] Se encontró el blob de origen. Iniciando la copia a la carpeta de error...")
         except ResourceNotFoundError:
-             logging.warning(f"[{blob_name}] Source blob '{source_container}/{blob_name}' not found. Cannot move to error folder.")
+             logging.warning(f"[{blob_name}] No se encontró el blob de origen '{source_container}/{blob_name}'. No se puede mover a la carpeta de error.")
              return
 
         # Iniciar copia
@@ -238,31 +245,31 @@ def move_blob_to_folder(blob_service_client: BlobServiceClient, source_container
                   if copy_status != "pending":
                       break
              else:
-                  logging.warning(f"[{blob_name}] Copy properties not found for '{destination_blob_name}'. Waiting...")
+                  logging.warning(f"[{blob_name}] No se encontraron las propiedades de copia para '{destination_blob_name}'. Esperando...")
              time.sleep(copy_poll_interval)
              elapsed_time += copy_poll_interval
-             logging.debug(f"[{blob_name}] Copy status to error folder is '{copy_status}', waiting...")
+             logging.debug(f"[{blob_name}] El estado de la copia a la carpeta de error es '{copy_status}', esperando...")
 
         # Evaluar resultado de la copia y eliminar origen si tuvo éxito
         if copy_status == "success":
-             logging.info(f"[{blob_name}] Copy to error folder '{error_folder}' successful. Deleting original.")
+             logging.info(f"[{blob_name}] La copia a la carpeta de error '{error_folder}' fue exitosa. Borrando el original.")
              source_blob_client.delete_blob(delete_snapshots="include")
-             logging.info(f"[{blob_name}] Original blob deleted after moving to error folder.")
+             logging.info(f"[{blob_name}] Blob original borrado después de moverlo a la carpeta de error.")
         else:
-             logging.error(f"[{blob_name}] Copy status to error folder '{error_folder}' is '{copy_status}' after waiting. Original blob will NOT be deleted.")
+             logging.error(f"[{blob_name}] El estado de la copia a la carpeta de error '{error_folder}' es '{copy_status}' después de esperar. El blob original NO será borrado.")
              # Intentar abortar si quedó pendiente
              if props and props.copy and props.copy.id and copy_status == 'pending':
                   try:
                       destination_blob_client.abort_copy(props.copy.id)
-                      logging.info(f"[{blob_name}] Aborted pending copy to error folder.")
+                      logging.info(f"[{blob_name}] Se abortó la copia pendiente a la carpeta de error.")
                   except Exception as abort_ex:
-                      logging.error(f"[{blob_name}] Failed to abort copy to error folder: {abort_ex}")
+                      logging.error(f"[{blob_name}] No se pudo abortar la copia a la carpeta de error: {abort_ex}")
 
     except ResourceNotFoundError:
          # Podría ocurrir si el blob se elimina mientras se intenta mover
-         logging.warning(f"[{blob_name}] Resource not found during move to error folder operation.")
+         logging.warning(f"[{blob_name}] Recurso no encontrado durante la operación de movimiento a la carpeta de error.")
     except Exception as e:
-        logging.exception(f"[{blob_name}] Failed to move blob to error folder '{error_folder}': {e}")
+        logging.exception(f"[{blob_name}] No se pudo mover el blob a la carpeta de error '{error_folder}': {e}")
 
 @app.route(
     route="upload-cv",
@@ -274,78 +281,66 @@ def upload_cv_http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     Azure Function triggered by an HTTP POST request to upload a CV file (v2 model).
     Saves the file to the 'candidates' blob container.
     """
-    logging.info('Python HTTP trigger function processed a request to upload CV.')
+    logging.info('Función de disparador HTTP de Python procesó una solicitud para subir un CV.')
 
     file_content = None
     filename = None
     content_type = 'application/octet-stream' # Default
 
     try:
-        # ... (misma lógica para obtener file_content, filename, content_type que antes) ...
-        # Priorizar form-data
         file_from_form = req.files.get('file')
 
         if file_from_form:
             filename = os.path.basename(file_from_form.filename) # Sanitizar
             file_content = file_from_form.read()
             content_type = file_from_form.mimetype or content_type # Obtener mimetype si está disponible
-            logging.info(f"Received file '{filename}' via form-data ({len(file_content)} bytes), type: {content_type}")
+            logging.info(f"Recibido archivo '{filename}' a través de form-data ({len(file_content)} bytes), tipo: {content_type}")
         else:
-            # Si no está en form-data, intentar leer el cuerpo directamente
             file_content = req.get_body()
             if not file_content:
                  return func.HttpResponse(
-                       "Please pass a file in the request body or as form-data with key 'file'.",
+                       "Por favor, pase un archivo en el cuerpo de la solicitud o como form-data con la clave 'file'.",
                        status_code=400
                  )
             # Intentar obtener nombre de header o usar default
             filename = os.path.basename(req.headers.get('X-Filename', 'uploaded_cv.pdf')) # Sanitizar
-            # Intentar obtener content-type del header
             content_type = req.headers.get('Content-Type', content_type)
-            logging.info(f"Received file '{filename}' via request body ({len(file_content)} bytes), type: {content_type}")
+            logging.info(f"Recibido archivo '{filename}' a través del cuerpo de la solicitud ({len(file_content)} bytes), tipo: {content_type}")
 
         if not filename:
              filename = "default_uploaded_cv.pdf"
-             logging.warning("Could not determine filename, using default.")
+             logging.warning("No se pudo determinar el nombre del archivo, usando el nombre por defecto.")
 
-
-        # --- Guardar en Blob Storage ---
         try:
             connection_string = os.environ[CONNECTION_STRING_ENV_VAR]
             blob_service_client = BlobServiceClient.from_connection_string(connection_string)
             blob_client = blob_service_client.get_blob_client(container=CANDIDATES_CONTAINER, blob=filename)
 
-            # ***** INICIO DE LA CORRECCIÓN *****
-            # Crear un objeto ContentSettings
             blob_content_settings = ContentSettings(content_type=content_type)
-            # Puedes añadir otras propiedades si las necesitas, por ejemplo:
-            # blob_content_settings = ContentSettings(content_type=content_type, content_language='es-ES')
 
-            logging.info(f"Uploading '{filename}' to '{CANDIDATES_CONTAINER}' container with content_settings: {blob_content_settings}")
+            logging.info(f"Subiendo '{filename}' al contenedor '{CANDIDATES_CONTAINER}' con content_settings: {blob_content_settings}")
 
-            # Pasar el objeto ContentSettings en lugar del diccionario
             blob_client.upload_blob(
                 file_content,
                 overwrite=True,
-                content_settings=blob_content_settings # <-- Pasar el objeto corregido
+                content_settings=blob_content_settings
             )
-            # ***** FIN DE LA CORRECCIÓN *****
 
-            logging.info(f"Successfully uploaded '{filename}'. Blob trigger will process it.")
+            logging.info(f"Subido exitosamente '{filename}'. El disparador de blob lo procesará.")
 
             return func.HttpResponse(
-                f"File '{filename}' uploaded successfully to '{CANDIDATES_CONTAINER}'. It will be processed shortly.",
+                f"Archivo '{filename}' subido exitosamente a '{CANDIDATES_CONTAINER}'. Será procesado en breve.",
                 status_code=200
             )
 
         except KeyError:
-             logging.exception(f"Environment variable '{CONNECTION_STRING_ENV_VAR}' not found.")
-             return func.HttpResponse("Server configuration error (Storage connection missing).", status_code=500)
+             logging.exception(f"Variable de entorno '{CONNECTION_STRING_ENV_VAR}' no encontrada.")
+             return func.HttpResponse("Error de configuración del servidor (falta la conexión de almacenamiento).", status_code=500)
         except Exception as e:
-            logging.exception(f"Error uploading file '{filename}' to blob storage: {e}")
+            logging.exception(f"Error al subir el archivo '{filename}' al almacenamiento de blobs: {e}")
             # Aquí es donde probablemente viste el error original
-            return func.HttpResponse(f"Error saving file to storage: {e}", status_code=500)
+            return func.HttpResponse(f"Error al guardar el archivo en el almacenamiento: {e}", status_code=500)
 
     except Exception as e:
-         logging.exception("Unexpected error processing HTTP upload request.")
-         return func.HttpResponse("An internal server error occurred during upload processing.", status_code=500)
+         logging.exception("Error inesperado al procesar la solicitud de carga HTTP.")
+         return func.HttpResponse("Ocurrió un error interno del servidor durante el procesamiento de la carga.", status_code=500)

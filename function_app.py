@@ -15,14 +15,12 @@ try:
     from src.shared.validate_process_json import extract_and_validate_cv_data_from_json
 except ImportError as e:
     logging.critical(f"CRÍTICO: Falló la importación de módulos de la aplicación durante el inicio: {e}. Verifique los archivos __init__.py y las dependencias.")
-    # Define clases dummy para permitir que el resto del archivo se analice si falla la importación
     class DocumentIntelligenceAdapter: pass
     class DocumentIntelligenceError(Exception): pass
     class NoContentExtractedError(DocumentIntelligenceError): pass
     class AzureOpenAIAdapter: pass
     class OpenAIError(Exception): pass
     def prompt_system(profile, criterios, cv_candidato, current_date=None): return ""
-    # class FileProcessingError(Exception): pass
     def extract_and_validate_cv_data_from_json(json_string: str): return None, None, None
 
 
@@ -85,9 +83,9 @@ CANDIDATES_CONTAINER = "candidates"
 )
 def process_candidate_cv(inputblob: func.InputStream):
     """
-    Azure Function triggered by a blob in 'candidates' container.
-    Extracts text (DI), analyzes (OpenAI), validates data, and saves result to 'resultado'.
-    Moves original blob on error, deletes on success.
+    Función de Azure activada por un blob en el contenedor "Candidatos".
+    Extrae texto (DI), analiza (OpenAI), valida los datos y guarda el resultado en "Resultado".
+    Mueve el blob original en caso de error y lo elimina en caso de éxito.
     """
     if not inputblob or not inputblob.name:
         logging.error("El disparador de blob se invocó sin un blob de entrada o un nombre válido.")
@@ -230,7 +228,7 @@ def move_blob_to_folder(blob_service_client: BlobServiceClient, source_container
         copy_job = destination_blob_client.start_copy_from_url(source_blob_url)
 
         # Esperar a que la copia termine (bucle de sondeo simple)
-        copy_wait_seconds = 15 # Aumentar un poco el tiempo de espera
+        copy_wait_seconds = 15
         copy_poll_interval = 1
         elapsed_time = 0
         copy_status = None
@@ -283,7 +281,7 @@ def upload_cv_http_trigger(req: func.HttpRequest) -> func.HttpResponse:
 
     file_content = None
     filename = None
-    content_type = 'application/octet-stream' # Default
+    content_type = 'application/octet-stream'
 
     try:
         file_from_form = req.files.get('file')
@@ -336,7 +334,6 @@ def upload_cv_http_trigger(req: func.HttpRequest) -> func.HttpResponse:
              return func.HttpResponse("Error de configuración del servidor (falta la conexión de almacenamiento).", status_code=500)
         except Exception as e:
             logging.exception(f"Error al subir el archivo '{filename}' al almacenamiento de blobs: {e}")
-            # Aquí es donde probablemente viste el error original
             return func.HttpResponse(f"Error al guardar el archivo en el almacenamiento: {e}", status_code=500)
 
     except Exception as e:

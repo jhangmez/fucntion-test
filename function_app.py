@@ -12,9 +12,7 @@ try:
     from src.infrastructure.ocr.document_intelligence_adapter import DocumentIntelligenceAdapter, DocumentIntelligenceError, NoContentExtractedError
     from src.infrastructure.openai.azure_openai_adapter import AzureOpenAIAdapter, OpenAIError
     from src.shared.prompt_system import prompt_system
-    from src.shared.extract_and_validate_cv_data import extract_and_validate_cv_data_from_json
-    # Importa cualquier excepción personalizada de dominio que uses
-    # from src.domain.exceptions import FileProcessingError
+    from src.shared.validate_process_json import extract_and_validate_cv_data_from_json
 except ImportError as e:
     logging.critical(f"CRÍTICO: Falló la importación de módulos de la aplicación durante el inicio: {e}. Verifique los archivos __init__.py y las dependencias.")
     # Define clases dummy para permitir que el resto del archivo se analice si falla la importación

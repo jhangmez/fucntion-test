@@ -1,8 +1,28 @@
 {
-    "azureFunctions.deploySubpath": ".",
-    "azureFunctions.scmDoBuildDuringDeployment": true,
-    "azureFunctions.projectLanguage": "Python",
-    "azureFunctions.projectRuntime": "~4",
-    "debug.internalConsoleOptions": "neverOpen",
-    "azureFunctions.projectLanguageModel": 2
+  "azureFunctions.deploySubpath": ".",
+  "azureFunctions.scmDoBuildDuringDeployment": true,
+  "azureFunctions.projectLanguage": "Python",
+  "azureFunctions.projectRuntime": "~4",
+  "debug.internalConsoleOptions": "neverOpen",
+  "azureFunctions.projectLanguageModel": 2,
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#edb5ee",
+    "activityBar.background": "#edb5ee",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#82801e",
+    "activityBarBadge.foreground": "#e7e7e7",
+    "commandCenter.border": "#15202b99",
+    "sash.hoverBorder": "#edb5ee",
+    "statusBar.background": "#e38ce4",
+    "statusBar.foreground": "#15202b",
+    "statusBarItem.hoverBackground": "#d963da",
+    "statusBarItem.remoteBackground": "#e38ce4",
+    "statusBarItem.remoteForeground": "#15202b",
+    "titleBar.activeBackground": "#e38ce4",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#e38ce499",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+  "peacock.remoteColor": "#e38ce4"
 }

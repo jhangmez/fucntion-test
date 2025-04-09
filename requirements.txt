@@ -10,3 +10,8 @@ azure-ai-documentintelligence
 azure-core
 azure-storage-blob
 pydantic
+
+
+
+# Apartir desde aqui a abajo son dependencias que son utilizadas para pruebas, las cuales no deben ser instaladas en produccion.
+flask

@@ -2,16 +2,17 @@
 # The Python Worker is managed by Azure Functions platform
 # Manually managing azure-functions-worker may cause unexpected issues
 
-azure-functions
 openai
 python-dotenv
 azure-core
 azure-ai-documentintelligence
-azure-core
+azure-functions
 azure-storage-blob
-pydantic
-
-
+azure-identity
+azure-keyvault-secrets
+langchain
+tiktoken
+azure-search-documents
 
 # Apartir desde aqui a abajo son dependencias que son utilizadas para pruebas, las cuales no deben ser instaladas en produccion.
 flask

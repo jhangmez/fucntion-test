@@ -17,7 +17,7 @@ try:
         AzureOpenAIAdapter,
         OpenAIError,
     )
-    from src.infrastructure.api_rest.rest_api_adapter import RestApiAdapter
+    from src.infrastructure.api_rest.api_rest_adapter import RestApiAdapter
     from src.infrastructure.embedding.embedding_generator import (
         EmbeddingGenerator,
         APIError as EmbeddingAPIError,
@@ -38,81 +38,36 @@ try:
     from src.shared.extract_values import get_id_candidate, get_id_rank
     from src.shared.sanitize_string import sanitize_for_id, format_text_for_embedding
     from src.shared.extract_values import get_id_candidate, get_id_rank
+
 except ImportError as e:
+    import logging
     logging.critical(
         f"CRÍTICO: Falló la importación de módulos de la aplicación durante el inicio: {e}. Verifique los archivos __init__.py y las dependencias."
     )
 
-    class DocumentIntelligenceAdapter:
-        pass
-
-    class DocumentIntelligenceError(Exception):
-        pass
-
-    class NoContentExtractedError(DocumentIntelligenceError):
-        pass
-
-    class AzureOpenAIAdapter:
-        pass
-
-    class OpenAIError(Exception):
-        pass
-
-    class RestApiAdapter:
-        pass
-
-    class EmbeddingGenerator:
-        pass
-
-    class EmbeddingAPIError(Exception):
-        pass
-
-    class AzureAISearchAdapter:
-        pass
-
-    class AISearchError(Exception):
-        pass
-
-    class APIError(Exception):
-        pass
-
-    class AuthenticationError(APIError):
-        pass
-
-    class KeyVaultError(Exception):
-        pass
-
-    class SecretNotFoundError(KeyVaultError):
-        pass
-
-    class JSONValidationError(Exception):
-        pass
-
-    class KeyVaultClient:
-        pass
-
-    def prompt_system(profile, criterios, cv_candidato, current_date=None):
-        return ""
-
-    def extract_and_validate_cv_data_from_json(json_string: str):
-        return None, None, None
-
-    def sanitize_for_id(t):
-        return "sanitized-id"
-
-    def format_text_for_embedding(
-        candidate_name, profile_name, cv_analysis, average_score
-    ):
-        return "formatted text"
-
-    def calculate_average_score_from_dict(cv_score: dict):
-        return "0.0"
-
-    def get_id_candidate(file_path: str) -> str:
-        return ""
-
-    def get_id_rank(file_path: str) -> str:
-        return ""
+    class DocumentIntelligenceAdapter: pass
+    class DocumentIntelligenceError(Exception): pass
+    class NoContentExtractedError(DocumentIntelligenceError): pass
+    class AzureOpenAIAdapter: pass
+    class OpenAIError(Exception): pass
+    class RestApiAdapter: pass
+    class EmbeddingGenerator: pass
+    class EmbeddingAPIError(Exception): pass
+    class AzureAISearchAdapter: pass
+    class AISearchError(Exception): pass
+    class APIError(Exception): pass
+    class AuthenticationError(APIError): pass
+    class KeyVaultError(Exception): pass
+    class SecretNotFoundError(KeyVaultError): pass
+    class JSONValidationError(Exception): pass
+    class KeyVaultClient: pass
+    prompt_system = lambda profile, criterios, cv_candidato, current_date=None: ""
+    extract_and_validate_cv_data_from_json = lambda json_string: (None, None, None)
+    sanitize_for_id = lambda t: "sanitized-id"
+    format_text_for_embedding = lambda candidate_name, profile_name, cv_analysis, average_score: "formatted text"
+    calculate_average_score_from_dict = lambda cv_score: "0.0"
+    get_id_candidate = lambda file_path: ""
+    get_id_rank = lambda file_path: ""
 
 
 CONNECTION_STRING_ENV_VAR = "AzureWebJobsStorage"

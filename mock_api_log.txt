@@ -1,0 +1,71 @@
+
+##################################################
+Timestamp: 2025-04-10 20:16:10
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-10 20:16:10
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-10 20:16:14
+Endpoint : /Resumen/AddScores
+Method   : POST
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "scores": {
+    "A": 30,
+    "B": 0,
+    "C": 0,
+    "D": 0,
+    "E": 0,
+    "F": 0,
+    "G": 0
+  }
+}
+Response : Status=201, Body={
+  "message": "Scores para 042c4016-7a89-49ea-bf01-f821d61c9a9a recibidos (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-10 20:16:14
+Endpoint : /Resumen/Save
+Method   : POST
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "transcription": "Renzo Raul Porras Medina Lima, Per\u00fa | +51 958 624 598 | renzoporrasm15@gmail.com PERFIL PROFESIONAL\nEstudiante de la carrera de Arquitectura de Datos Empresariales con especializaci\u00f3n en Big Data Developer. Dominio del idioma ingl\u00e9s y manejo de las herramientas inform\u00e1ticas de Office a nivel avanzado. Con excelentes habilidades de comunicaci\u00f3n escrita y verbal, liderazgo, honesto, responsable, perseverante, siempre predispuesto al trabajo en equipo con el fin de desarrollar efectivamente los objetivos y metas planteados por la organizaci\u00f3n. Con inter\u00e9s en desarrollarme profesionalmente en el \u00e1rea de Tecnolog\u00edas de la Informaci\u00f3n. PROYECTOS ACADEMICOS\nBase de Datos Carwash\nAdministrador de base de Datos\n\u2022 Encargado del dise\u00f1o y desarrollo de base de datos en SQLServer\n\u2022 Encargado de realizar el modelado de procesos con la base de datos en Bizagi Modeler\nARE Web\nDesarrollador web\n\u2022 Encargado de escribir, mantener y mejorar el c\u00f3digo de la pagina web utilizando Visual Studio Code. . \u00a3 Encargado del dise\u00f1o de la pagina web utilizando HTML, CSS y Java Script.\nCreaci\u00f3n de un Datamart para explotar la informaci\u00f3n del proceso de Asistencia Financiera\nAnalista de datos\nLima, Per\u00fa Mar 2022 - Agos 2022 Lima, Per\u00fa Mar 2022 - Jul 2022 Lima, Per\u00fa Jul 2023 - Set 2023\n\u2022 Encargado del desarrollo del Datamart en SQLServer utilizando los datos de la empresa.\n\u2022 Encargado de reducir los problemas durante el proceso de asistencia financiera utilizando Reporting Services, Analysis Services, Integration Services, Visual Studio y Power BI.\nAn\u00e1lisis de h\u00e1bitos de compra de clientes en Big Data\nLima, Per\u00fa Analista de datos\nMar 2023 - Ago 2023\n\u2022 Encargado de recopilar, limpiar y analizar grandes conjuntos de datos de los clientes.\n\u2022 Encargado de identificar y gestionar los productos m\u00e1s solicitados por los clientes en temporada especificas utilizando MongoDB, Power BI, Apache Hadoop y Apache Hive.\nPredicci\u00f3n de tendencias de acciones en la bolsa de new york\nLima, Per\u00fa Analista de datos\nMar 2023 - Ago 2023\n\u2022 Encargado de manejar, limpiar y analizar los datos hist\u00f3ricos de precios en\nAmazon.\n\u2022 Encargado de implementar un modelo de predicci\u00f3n utilizando redes neuronales para predecir el futuro de las acciones.\nEDUCACI\u00d3N\nInstituto Superior Tecnol\u00f3gico Privado Cibertec Lima, Per\u00fa\nInstituto Superior Tecnol\u00f3gico CIBERTEC (5to Superior) Mar 2022 - Actualidad\n\u00b7 Cursos relevantes: Introducci\u00f3n a la algoritmia, Arquitectura de Entornos Web, Base de datos relacional y dimensional, Lenguaje de ciencia de datos, An\u00e1lisis y dise\u00f1o de Software, gesti\u00f3n de datos masivos y Construcci\u00f3n y Pruebas de software.\nACTIVIDADES EXTRACURRICULARES Y DE LIDERAZGO\nEXPO Lima Centro 2023 Per\u00fa\nLima,\npresentaci\u00f3n del proyecto de Predicci\u00f3n de tendencias de acciones en la bolsa de New York.\nJun 2023- Jul 2023\nHABILIDADES E INTERESES\nIdiomas: Ingl\u00e9s intermedio Habilidades Inform\u00e1ticas: Excel, Power Point, Word , HTML, Java Script, CSS, Power BI , SQL Server, Bizagi, Visual Studio , SSIS, MongoDB, Python, R, Rstudio , Google Colaboratory y IBM Rhapsody. Intereses: Analista de datos Hobbies: Hacer actividad f\u00edsica, escuchar m\u00fasica y ver series .",
+  "score": 4.29,
+  "candidateName": "Renzo Raul Porras Medina",
+  "analysis": "Justificaci\u00f3n A: El candidato tiene experiencia desde marzo de 2022 hasta la actualidad en varios proyectos, lo que suma aproximadamente 3 a\u00f1os de experiencia total. Justificaci\u00f3n B: En el proyecto de 'Predicci\u00f3n de tendencias de acciones en la bolsa de New York', el candidato implement\u00f3 un modelo de predicci\u00f3n, lo que indica experiencia en modelos predictivos desde marzo de 2023 hasta agosto de 2023, sumando 6 meses. En total, tiene menos de 2 a\u00f1os en modelos predictivos. Justificaci\u00f3n C: No se menciona experiencia en MLops en el CV, por lo que se le asigna 0%. Justificaci\u00f3n D: No se menciona experiencia en la nube (Azure, AWS, GCP), por lo que se le asigna 0%. Justificaci\u00f3n E: El candidato ha trabajado con bases de datos en SQLServer y MongoDB, pero no se especifica el tiempo total de experiencia en bases de datos estructuradas, por lo que se le asigna 0%. Justificaci\u00f3n F: El candidato menciona el uso de Python en sus habilidades inform\u00e1ticas, pero no se especifica el tiempo de experiencia en an\u00e1lisis de datos con Python, por lo que se le asigna 0%. Justificaci\u00f3n G: No se menciona experiencia en el framework de procesamiento de datos Spark, por lo que se le asigna 0%."
+}
+Response : Status=200, Body={
+  "message": "Resumen para 042c4016-7a89-49ea-bf01-f821d61c9a9a guardado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-10 20:16:14
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": null
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}

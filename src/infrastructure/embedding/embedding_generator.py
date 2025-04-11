@@ -8,7 +8,7 @@ from functools import wraps
 try:
     from openai import AzureOpenAI, RateLimitError, APIError
 except ImportError:
-    logging.critical("OpenAI library not found. Please install 'openai'.")
+    logging.critical("Librería OpenAI no encontrada. Por favor, instala 'openai'.")
 
     class AzureOpenAI:
         pass  # Dummy
@@ -26,18 +26,18 @@ try:
     # Asegúrate que tiktoken esté instalado si usas from_tiktoken_encoder
     # import tiktoken
 except ImportError:
-    logging.warning("LangChain or TikToken not found. Using basic text splitting.")
+    logging.warning("LangChain o TikToken no encontrados. Usando división de texto básica.")
     RecursiveCharacterTextSplitter = None  # Flag para usar alternativa
 
 
 # Definir constantes para configuración
 ENV_OPENAI_ENDPOINT = (
-    "OPENAI_ENDPOINT"  # Reutilizar de openai_adapter si es el mismo
+    "OPENAI_ENDPOINT"
 )
-ENV_OPENAI_API_KEY = "OPENAI_API_KEY"  # Reutilizar
+ENV_OPENAI_API_KEY = "OPENAI_API_KEY"
 ENV_OPENAI_EMBEDDING_DEPLOYMENT = "OPENAI_EMBEDDING_DEPLOYMENT"
 ENV_OPENAI_API_VERSION = (
-    "OPENAI_API_VERSION"  # Podría ser diferente para embeddings
+    "OPENAI_EMBEDDING_API_VERSION"
 )
 
 
@@ -59,7 +59,7 @@ def _retry_embeddings_on_error(max_retries: int = 5, initial_delay: int = 5):
                         # Usar el tiempo sugerido por OpenAI si está en e.retry_after, si no, backoff
                         wait_time = getattr(e, "retry_after", delay)
                         logging.warning(
-                            f"Embedding Rate Limit Exceeded (attempt {retries}/{max_retries}). Retrying in {wait_time} seconds: {e}"
+                            f"Se excedió el límite de tasa de Embedding (intento {retries}/{max_retries}). Reintentando en {wait_time} segundos: {e}"
                         )
                         time.sleep(wait_time)
                         delay *= (
@@ -67,28 +67,28 @@ def _retry_embeddings_on_error(max_retries: int = 5, initial_delay: int = 5):
                         )
                     else:
                         logging.error(
-                            "Max retries exceeded for OpenAI Embedding Rate Limit Error: %s",
+                            "Se excedió el número máximo de reintentos para el Error de Límite de Tasa de Embedding de OpenAI: %s",
                             e,
                         )
                         # Relanzar como error genérico de API para manejo externo
                         raise APIError(
-                            f"Embedding Rate limit exceeded after multiple retries: {e}"
+                            f"Límite de tasa de Embedding excedido después de múltiples reintentos: {e}"
                         ) from e
                 except APIError as e:  # Capturar otros errores de API (conexión, auth, etc.)
                     # Podríamos añadir reintento para errores 5xx si fuera necesario
                     logging.error(
-                        f"OpenAI API Error during embedding generation: {e}"
+                        f"Error de la API de OpenAI durante la generación de embedding: {e}"
                     )
                     raise  # Relanzar errores de API no relacionados con RateLimit
                 except Exception as e:
                     # Errores inesperados no directamente de la API
                     logging.exception(
-                        "Unexpected error during embedding generation wrapper: %s", e
+                        "Error inesperado durante el envoltorio de la generación de embedding: %s", e
                     )
                     raise  # Relanzar errores inesperados
 
             # Si el bucle termina (no debería pasar con los raise)
-            raise APIError("Exceeded max retries for embedding generation.")
+            raise APIError("Se excedió el número máximo de reintentos para la generación de embedding.")
 
         return wrapper
 
@@ -116,7 +116,7 @@ class EmbeddingGenerator:
             missing_vars.append(ENV_OPENAI_EMBEDDING_DEPLOYMENT)
         if missing_vars:
             raise ValueError(
-                f"Missing required environment variables for EmbeddingGenerator: {', '.join(missing_vars)}"
+                f"Faltan variables de entorno requeridas para EmbeddingGenerator: {', '.join(missing_vars)}"
             )
 
         try:
@@ -126,15 +126,15 @@ class EmbeddingGenerator:
                 api_version=self.api_version,
             )
             logging.info(
-                "EmbeddingGenerator: AzureOpenAI client initialized for deployment '%s'.",
+                "EmbeddingGenerator: Cliente AzureOpenAI inicializado para el deployment '%s'.",
                 self.deployment,
             )
         except Exception as e:
             logging.error(
-                "EmbeddingGenerator: Failed to create Azure OpenAI client: %s", e
+                "EmbeddingGenerator: Falló la creación del cliente Azure OpenAI: %s", e
             )
             raise ValueError(
-                f"Failed to initialize Azure OpenAI client for embeddings: {e}"
+                f"Falló la inicialización del cliente Azure OpenAI para embeddings: {e}"
             ) from e
 
         # Inicializar el text splitter
@@ -155,11 +155,11 @@ class EmbeddingGenerator:
                     )
                 )
                 logging.info(
-                    "Using LangChain RecursiveCharacterTextSplitter with TikToken."
+                    "Usando RecursiveCharacterTextSplitter de LangChain con TikToken."
                 )
             except Exception as e:
                 logging.warning(
-                    f"Failed to initialize TikToken splitter ({e}), falling back to character splitter."
+                    f"Falló la inicialización del splitter de TikToken ({e}), volviendo al splitter de caracteres."
                 )
                 # Fallback a splitter basado en caracteres si Tiktoken falla o no está
                 self.text_splitter = RecursiveCharacterTextSplitter(
@@ -168,11 +168,11 @@ class EmbeddingGenerator:
                     length_function=len,
                 )
                 logging.info(
-                    "Using LangChain RecursiveCharacterTextSplitter based on characters."
+                    "Usando RecursiveCharacterTextSplitter de LangChain basado en caracteres."
                 )
         else:
             logging.warning(
-                "LangChain not available. Using basic newline/character splitting."
+                "LangChain no disponible. Usando división básica por nueva línea/caracteres."
             )
             self.text_splitter = None  # Indicador para usar lógica manual
 
@@ -213,13 +213,13 @@ class EmbeddingGenerator:
             return []
 
         logging.info(
-            f"Generating embeddings for {len(text_chunks)} chunks using deployment '{self.deployment}'..."
+            f"Generando embeddings para {len(text_chunks)} chunks usando el deployment '{self.deployment}'..."
         )
         response = self.client.embeddings.create(
             input=text_chunks,
             model=self.deployment,  # Usar el nombre del deployment de embedding
         )
-        logging.info(f"Embeddings received. Usage: {response.usage}")
+        logging.info(f"Embeddings recibidos. Uso: {response.usage}")
 
         # Extraer los embeddings en el orden correcto
         embeddings_list = sorted(response.data, key=lambda item: item.index)
@@ -236,23 +236,23 @@ class EmbeddingGenerator:
             o (None, None) si ocurre un error.
         """
         if not text:
-            logging.warning("Input text for embedding generation is empty.")
+            logging.warning("El texto de entrada para la generación de embedding está vacío.")
             return None, None
 
         try:
-            logging.info("Splitting text into chunks...")
+            logging.info("Dividiendo el texto en chunks...")
             chunks = self._split_text(text)
-            logging.info(f"Text split into {len(chunks)} chunks.")
+            logging.info(f"Texto dividido en {len(chunks)} chunks.")
 
             if not chunks:
-                logging.warning("Text splitting resulted in zero chunks.")
+                logging.warning("La división del texto resultó en cero chunks.")
                 return None, None
 
             embeddings = self._generate_embeddings_internal(chunks)
 
             if len(embeddings) != len(chunks):
                 logging.error(
-                    f"Mismatch between number of chunks ({len(chunks)}) and embeddings ({len(embeddings)})."
+                    f"Desajuste entre el número de chunks ({len(chunks)}) y embeddings ({len(embeddings)})."
                 )
                 # Aca se indica si existe algun problema en la respuesta de la api
                 return None, None
@@ -260,10 +260,10 @@ class EmbeddingGenerator:
             return embeddings, chunks
 
         except APIError as e:
-            logging.error(f"Failed to generate embeddings due to API error: {e}")
+            logging.error(f"Falló la generación de embeddings debido a un error de la API: {e}")
             return None, None
         except Exception as e:
             logging.exception(
-                f"Unexpected error during embedding generation process: {e}"
+                f"Error inesperado durante el proceso de generación de embedding: {e}"
             )
             return None, None

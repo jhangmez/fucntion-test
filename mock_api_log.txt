@@ -69,3 +69,673 @@ Received : {
 Response : Status=200, Body={
   "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
 }
+
+##################################################
+Timestamp: 2025-04-10 22:41:10
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-10 22:41:10
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-10 22:41:16
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-10 22:41:16
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-10 22:41:24
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-10 22:41:24
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-10 23:36:04
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-10 23:36:04
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-10 23:36:18
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-10 23:36:18
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-10 23:36:30
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-10 23:36:30
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-10 23:36:38
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-10 23:36:38
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-11 01:11:32
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 01:11:32
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-11 01:11:39
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 01:11:39
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-11 01:11:45
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 01:11:45
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:25:27
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:25:27
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:25:28
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:25:28
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:27:59
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:27:59
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:28:00
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:28:00
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:28:00
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:28:00
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:28:04
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:28:04
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:28:04
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:28:04
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:37:35
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:37:35
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:37:36
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:37:36
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:37:36
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:37:36
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:37:36
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:37:36
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:37:37
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:37:37
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": "ValueError: Missing required environment variables for EmbeddingGenerator: OPENAI_EMBEDDING_DEPLOYMENT"
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:46:04
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 15:46:04
+Endpoint : /Resumen/fd106546-338f-4fb9-8442-cff845c9b8c3
+Method   : GET
+Received : {
+  "rank_id": "fd106546-338f-4fb9-8442-cff845c9b8c3"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:46:14
+Endpoint : /Resumen/AddScores
+Method   : POST
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "scores": {
+    "A": 0,
+    "B": 0,
+    "C": 0,
+    "D": 0,
+    "E": 0,
+    "F": 0,
+    "G": 0
+  }
+}
+Response : Status=201, Body={
+  "message": "Scores para 042c4016-7a89-49ea-bf01-f821d61c9a9a recibidos (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:46:14
+Endpoint : /Resumen/Save
+Method   : POST
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "transcription": "Renzo Raul Porras Medina Lima, Per\u00fa | +51 958 624 598 | renzoporrasm15@gmail.com PERFIL PROFESIONAL\nEstudiante de la carrera de Arquitectura de Datos Empresariales con especializaci\u00f3n en Big Data Developer. Dominio del idioma ingl\u00e9s y manejo de las herramientas inform\u00e1ticas de Office a nivel avanzado. Con excelentes habilidades de comunicaci\u00f3n escrita y verbal, liderazgo, honesto, responsable, perseverante, siempre predispuesto al trabajo en equipo con el fin de desarrollar efectivamente los objetivos y metas planteados por la organizaci\u00f3n. Con inter\u00e9s en desarrollarme profesionalmente en el \u00e1rea de Tecnolog\u00edas de la Informaci\u00f3n. PROYECTOS ACADEMICOS\nBase de Datos Carwash\nAdministrador de base de Datos\n\u2022 Encargado del dise\u00f1o y desarrollo de base de datos en SQLServer\n\u2022 Encargado de realizar el modelado de procesos con la base de datos en Bizagi Modeler\nARE Web\nDesarrollador web\n\u2022 Encargado de escribir, mantener y mejorar el c\u00f3digo de la pagina web utilizando Visual Studio Code. . \u00a3 Encargado del dise\u00f1o de la pagina web utilizando HTML, CSS y Java Script.\nCreaci\u00f3n de un Datamart para explotar la informaci\u00f3n del proceso de Asistencia Financiera\nAnalista de datos\nLima, Per\u00fa Mar 2022 - Agos 2022 Lima, Per\u00fa Mar 2022 - Jul 2022 Lima, Per\u00fa Jul 2023 - Set 2023\n\u2022 Encargado del desarrollo del Datamart en SQLServer utilizando los datos de la empresa.\n\u2022 Encargado de reducir los problemas durante el proceso de asistencia financiera utilizando Reporting Services, Analysis Services, Integration Services, Visual Studio y Power BI.\nAn\u00e1lisis de h\u00e1bitos de compra de clientes en Big Data\nLima, Per\u00fa Analista de datos\nMar 2023 - Ago 2023\n\u2022 Encargado de recopilar, limpiar y analizar grandes conjuntos de datos de los clientes.\n\u2022 Encargado de identificar y gestionar los productos m\u00e1s solicitados por los clientes en temporada especificas utilizando MongoDB, Power BI, Apache Hadoop y Apache Hive.\nPredicci\u00f3n de tendencias de acciones en la bolsa de new york\nLima, Per\u00fa Analista de datos\nMar 2023 - Ago 2023\n\u2022 Encargado de manejar, limpiar y analizar los datos hist\u00f3ricos de precios en\nAmazon.\n\u2022 Encargado de implementar un modelo de predicci\u00f3n utilizando redes neuronales para predecir el futuro de las acciones.\nEDUCACI\u00d3N\nInstituto Superior Tecnol\u00f3gico Privado Cibertec Lima, Per\u00fa\nInstituto Superior Tecnol\u00f3gico CIBERTEC (5to Superior) Mar 2022 - Actualidad\n\u00b7 Cursos relevantes: Introducci\u00f3n a la algoritmia, Arquitectura de Entornos Web, Base de datos relacional y dimensional, Lenguaje de ciencia de datos, An\u00e1lisis y dise\u00f1o de Software, gesti\u00f3n de datos masivos y Construcci\u00f3n y Pruebas de software.\nACTIVIDADES EXTRACURRICULARES Y DE LIDERAZGO\nEXPO Lima Centro 2023 Per\u00fa\nLima,\npresentaci\u00f3n del proyecto de Predicci\u00f3n de tendencias de acciones en la bolsa de New York.\nJun 2023- Jul 2023\nHABILIDADES E INTERESES\nIdiomas: Ingl\u00e9s intermedio Habilidades Inform\u00e1ticas: Excel, Power Point, Word , HTML, Java Script, CSS, Power BI , SQL Server, Bizagi, Visual Studio , SSIS, MongoDB, Python, R, Rstudio , Google Colaboratory y IBM Rhapsody. Intereses: Analista de datos Hobbies: Hacer actividad f\u00edsica, escuchar m\u00fasica y ver series .",
+  "score": 0.0,
+  "candidateName": "Renzo Raul Porras Medina",
+  "analysis": "Justificaci\u00f3n A: El candidato tiene experiencia como analista de datos desde marzo de 2022 hasta agosto de 2023, lo que suma 1 a\u00f1o y 5 meses de experiencia total. Por lo tanto, se le asigna un puntaje de 0%. Justificaci\u00f3n B: En el CV no se menciona experiencia espec\u00edfica en modelos predictivos durante m\u00e1s de 2 a\u00f1os, ya que el proyecto de predicci\u00f3n de tendencias de acciones se realiz\u00f3 entre marzo y agosto de 2023, lo que equivale a 6 meses. Por lo tanto, se le asigna un puntaje de 0%. Justificaci\u00f3n C: No se menciona experiencia en MLOps, por lo que se le asigna un puntaje de 0%. Justificaci\u00f3n D: No se menciona experiencia en plataformas de nube como Azure, AWS o GCP, por lo que se le asigna un puntaje de 0%. Justificaci\u00f3n E: El candidato tiene experiencia en bases de datos, espec\u00edficamente en SQL Server, desde marzo de 2022 hasta agosto de 2023, lo que suma 1 a\u00f1o y 5 meses. Por lo tanto, se le asigna un puntaje de 0%. Justificaci\u00f3n F: El candidato menciona el uso de Python, pero no se especifica la duraci\u00f3n de esta experiencia, por lo que se le asigna un puntaje de 0%. Justificaci\u00f3n G: No se menciona experiencia en el uso de Spark, por lo que se le asigna un puntaje de 0%."
+}
+Response : Status=200, Body={
+  "message": "Resumen para 042c4016-7a89-49ea-bf01-f821d61c9a9a guardado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 15:46:14
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "042c4016-7a89-49ea-bf01-f821d61c9a9a",
+  "errorMessage": null
+}
+Response : Status=200, Body={
+  "message": "Estado para 042c4016-7a89-49ea-bf01-f821d61c9a9a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 21:59:03
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-11 21:59:03
+Endpoint : /Resumen/91b477c8-c9fc-4859-9e50-3578c56a0345
+Method   : GET
+Received : {
+  "rank_id": "91b477c8-c9fc-4859-9e50-3578c56a0345"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-11 21:59:10
+Endpoint : /Resumen/AddScores
+Method   : POST
+Received : {
+  "candidateId": "f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2",
+  "scores": {
+    "A": 0,
+    "B": 0,
+    "C": 0,
+    "D": 0,
+    "E": 0,
+    "F": 0,
+    "G": 0
+  }
+}
+Response : Status=201, Body={
+  "message": "Scores para f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2 recibidos (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 21:59:10
+Endpoint : /Resumen/Save
+Method   : POST
+Received : {
+  "candidateId": "f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2",
+  "transcription": "Jesus Yair Juarez Ingeniero de datos\nArgentina | +54 9 3513426914 | juarezjesusyair@gmail.com Linkedin - Github\nSoy Ingeniero de Datos con un trasfondo en Ciencia de Datos, lo que me ha permitido gestionar grandes vol\u00famenes de datos, optimizarlos, y aplicar t\u00e9cnicas avanzadas desde la limpieza y transformaci\u00f3n hasta la modelaci\u00f3n y visualizaci\u00f3n de resultados clave. Estoy especializado en la creaci\u00f3n de pipelines de datos eficientes y en la extracci\u00f3n de insights valiosos mediante Ciencia de Datos. Tengo experiencia en el uso de Google Cloud Platform (GCP) para la implementaci\u00f3n de soluciones en la nube, arquitectura de datos y generaci\u00f3n de reportes. Recientemente obtuve la certificaci\u00f3n como Cient\u00edfico de Datos, lo que me ha dotado de habilidades adicionales en Machine Learning y an\u00e1lisis predictivo.\nPROYECTOS\nData Scientist - Google Yelp Reviews Experiencia acad\u00e9mica. Henry Bootcamp.\nJul. 29 - Ago. 16\nComo consultora de datos, realizaremos un an\u00e1lisis exhaustivo del mercado estadounidense para un cliente dentro del conglomerado de empresarios gastron\u00f3micos y afines. Nuestro enfoque principal es realizar un an\u00e1lisis exhaustivo de restaurantes, utilizando datos de las plataformas Google Maps y Yelp que nos proporcionar\u00e1 informaci\u00f3n valiosa para los inversores, ayudandoles en la toma de decisiones estrat\u00e9gicas.\n\u00b7 Dise\u00f1e soluciones en base a los datos presentados y/o lo pretendido por el usuario/cliente.\n\u00b7 Desarrolle ingenier\u00eda de datos y datawarehouse limpiando y transformando los datos proporcionados.\n. Utilice machine learning para realizar un sistema de recomendaci\u00f3n de restaurante y un sistema que recomienda una ciudad para invertir en un nuevo restaurante.\nHerramientas: Python, Pandas, Scikit-Learn, Power BI, Git. Base de Datos: BigQuery. Plataformas: Google Cloud Platform (GCP), Streamlit, Github\nEXPERIENCIA PROFESIONAL\nPracticante en Desarrollador Web Kunan SA.\n2022 Sep. 1 - 2022 Nov. 31\n\u00b7 Realice un nuevo sitio web para los clientes de la empresa.\n\u00b7 Use los servicios de CRM para el nuevo sitio web.\n\u00b7 Implemente varias APIs del propio CRM al sitio web para mejorar la experiencia del usuario ..\nEDUCACI\u00d3N PROFESIONAL\n\u00b7 Data Science. Henry Bootcamp. 2024.\n\u00b7 T\u00e9cnico en Programaci\u00f3n. I.P.E.T 57 Comodoro Martin Rivadavia. 2022.\nTECNOLOG\u00cdAS:\n. Lenguajes de Programaci\u00f3n: Python, SQL, NoSQL.\n. Machine Learning: Scikit-learn, TensorFlow, Keras, XGBoost\n\u00b7 Bases de Datos: MySQL, PostgreSQL, BigQuery.\n. Plataformas en la Nube: Google Cloud Platform (GCP)\n\u00b7 Visualizaci\u00f3n de Datos: Power BI, Matplotlib, Seaborn\n\u00b7 Otros: Git, Docker\nIDIOMAS\n\u00b7 Espa\u00f1ol: Nativo.\n\u00b7 Ingl\u00e9s B1 - Intermedio.",
+  "score": 0.0,
+  "candidateName": "Jesus Yair Juarez",
+  "analysis": "Justificaci\u00f3n A: El candidato tiene experiencia como Data Scientist desde julio de 2022 hasta agosto de 2022, lo que suma 1 mes. Adem\u00e1s, su experiencia en el bootcamp de Henry es acad\u00e9mica y no se contabiliza como experiencia laboral. Por lo tanto, tiene menos de 2 a\u00f1os de experiencia total, lo que le asigna 0%. Justificaci\u00f3n B: En su rol como Data Scientist, menciona el uso de machine learning para crear un sistema de recomendaci\u00f3n, pero no se especifica la duraci\u00f3n de esta experiencia. Dado que no se puede contabilizar al menos 2 a\u00f1os, se le asigna 0%. Justificaci\u00f3n C: No se menciona experiencia espec\u00edfica en MLOps, por lo que se le asigna 0%. Justificaci\u00f3n D: El candidato tiene experiencia en Google Cloud Platform (GCP) pero no menciona experiencia en Azure o AWS, por lo que se le asigna 0%. Justificaci\u00f3n E: Tiene experiencia con bases de datos como MySQL, PostgreSQL y BigQuery, pero no se especifica la duraci\u00f3n de esta experiencia. Dado que no se puede contabilizar al menos 2 a\u00f1os, se le asigna 0%. Justificaci\u00f3n F: El candidato menciona el uso de Python para an\u00e1lisis de datos, pero no se especifica la duraci\u00f3n de esta experiencia. Dado que no se puede contabilizar al menos 2 a\u00f1os, se le asigna 0%. Justificaci\u00f3n G: No se menciona experiencia con Spark, por lo que se le asigna 0%."
+}
+Response : Status=200, Body={
+  "message": "Resumen para f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2 guardado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-11 21:59:10
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2",
+  "errorMessage": null
+}
+Response : Status=200, Body={
+  "message": "Estado para f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2 actualizado (simulado)"
+}

@@ -1,7 +1,7 @@
 import json
 import logging
 import string # Para obtener las letras mayúsculas A-Z
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Optional, Tuple
 
 # Conjunto de letras mayúsculas válidas para una búsqueda rápida (sin cambios)
 VALID_LETTERS = set(string.ascii_uppercase)

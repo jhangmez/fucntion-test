@@ -1,6 +1,5 @@
-import logging
 import re
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Optional
 
 def sanitize_for_id(text: str) -> str:
     """

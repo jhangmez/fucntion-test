@@ -19,11 +19,11 @@ class KeyVaultClient:
         self.vault_uri = os.environ.get(vault_uri_env_var)
         if not self.vault_uri:
             logging.error(
-                "CRITICAL: Key Vault URI environment variable ('%s') no se ha definido.",
+                "CRÍTICO: La variable de entorno de la URI del Key Vault ('%s') no se ha definido.",
                 vault_uri_env_var,
             )
             raise ValueError(
-                f"Key Vault URI environment variable '{vault_uri_env_var}' no se ha definido."
+                f"La variable de entorno de la URI del Key Vault '{vault_uri_env_var}' no se ha definido."
             )
 
         try:
@@ -40,14 +40,14 @@ class KeyVaultClient:
                 vault_url=self.vault_uri, credential=credential
             )
             logging.info(
-                "KeyVaultClient inicializada exitosamente por el vault: %s",
+                "KeyVaultClient inicializado exitosamente para el vault: %s",
                 self.vault_uri,
             )
         except Exception as e:
             logging.exception(
-                "Error al inicializar el DefaultAzureCredential o SecretClient."
+                "Error al inicializar DefaultAzureCredential o SecretClient."
             )
-            raise KeyVaultError(f"Error al inicializar el Key Vault del cliente: {e}") from e
+            raise KeyVaultError(f"Error al inicializar el cliente de Key Vault: {e}") from e
 
     def get_secret(self, secret_name: str) -> str:
         """
@@ -63,16 +63,16 @@ class KeyVaultClient:
             SecretNotFoundError: Si el secreto no se encuentra en Key Vault.
             KeyVaultError: Si ocurre cualquier otro error al interactuar con Key Vault.
         """
-        logging.debug("Attempting to retrieve secret: %s", secret_name)
+        logging.debug("Intentando recuperar el secreto: %s", secret_name)
         try:
             # Obtiene el secreto
             retrieved_secret = self.secret_client.get_secret(secret_name)
             logging.info("Secreto recuperado exitosamente: %s", secret_name)
             return retrieved_secret.value
         except ResourceNotFoundError:
-            logging.error("Secreto no encontrado en el Key Vault: %s", secret_name)
+            logging.error("Secreto no encontrado en Key Vault: %s", secret_name)
             raise SecretNotFoundError(
-                f"Secreto '{secret_name}' no encontrado en el Key Vault: {self.vault_uri}"
+                f"Secreto '{secret_name}' no encontrado en Key Vault: {self.vault_uri}"
             )
         except ClientAuthenticationError as e:
             logging.error(
@@ -84,7 +84,7 @@ class KeyVaultClient:
         except Exception as e:
             # Captura otros posibles errores (ej. problemas de red con Key Vault)
             logging.exception(
-                "Error al recuperar el secreto '%s' desde el Key Vault: %s",
+                "Error al recuperar el secreto '%s' desde Key Vault: %s",
                 secret_name,
                 e,
             )

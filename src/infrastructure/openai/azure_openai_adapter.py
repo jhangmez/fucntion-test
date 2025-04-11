@@ -24,8 +24,8 @@ STREAM = False
 
 class AzureOpenAIAdapter:
     """
-    Adapter for interacting with Azure OpenAI service.  Handles authentication,
-    retries, and error handling.
+    Adaptador para interactuar con el servicio Azure OpenAI. Maneja la autenticación,
+    los reintentos y el manejo de errores.
     """
 
     def __init__(
@@ -37,18 +37,18 @@ class AzureOpenAIAdapter:
         deployment_env_var=ENV_KEY_DEPLOYMENT_NAME,
     ):
         """
-        Initializes the AzureOpenAIAdapter with API keys, endpoint, API version,
-        model name, and deployment name.  Reads these values from environment variables.
+        Inicializa el AzureOpenAIAdapter con claves de API, punto de conexión, versión de API,
+        nombre del modelo y nombre de la implementación. Lee estos valores de las variables de entorno.
 
         Args:
-            api_key_env_var (str): Environment variable name for the OpenAI API key.
-            endpoint_env_var (str): Environment variable name for the OpenAI endpoint.
-            api_version_env_var (str): Environment variable name for the OpenAI API version.
-            model_env_var (str): Environment variable name for the OpenAI Model.
-            deployment_env_var (str): Environment variable name for the OpenAI deployment name.
+            api_key_env_var (str): Nombre de la variable de entorno para la clave de API de OpenAI.
+            endpoint_env_var (str): Nombre de la variable de entorno para el punto de conexión de OpenAI.
+            api_version_env_var (str): Nombre de la variable de entorno para la versión de API de OpenAI.
+            model_env_var (str): Nombre de la variable de entorno para el Modelo de OpenAI.
+            deployment_env_var (str): Nombre de la variable de entorno para el nombre de la implementación de OpenAI.
 
         Raises:
-            ValueError: If any of the required environment variables are missing.
+            ValueError: Si falta alguna de las variables de entorno requeridas.
         """
         self.api_key = os.environ.get(api_key_env_var)
         self.endpoint = os.environ.get(endpoint_env_var)
@@ -57,16 +57,16 @@ class AzureOpenAIAdapter:
         self.deployment = os.environ.get(deployment_env_var)
 
         if not all([self.api_key, self.endpoint, self.api_version, self.model]):
-            raise ValueError("Missing required values for Azure OpenAI")
+            raise ValueError("Faltan valores requeridos para Azure OpenAI")
 
         self.client = self._create_client()
 
     def _create_client(self) -> AzureOpenAI:
         """
-        Creates and configures the Azure OpenAI client.
+        Crea y configura el cliente de Azure OpenAI.
 
         Returns:
-            AzureOpenAI: Configured AzureOpenAI client.
+            AzureOpenAI: Cliente AzureOpenAI configurado.
         """
         return AzureOpenAI(
             api_key=self.api_key, azure_endpoint=self.endpoint, api_version=self.api_version
@@ -74,14 +74,14 @@ class AzureOpenAIAdapter:
 
     def _retry_on_rate_limit(max_retries: int = 3, retry_delay: int = 30):
         """
-        Decorator to retry API calls in case of RateLimitError.
+        Decorador para reintentar llamadas a la API en caso de RateLimitError.
 
         Args:
-            max_retries (int): Maximum number of retries.
-            retry_delay (int): Initial delay in seconds between retries.
+            max_retries (int): Número máximo de reintentos.
+            retry_delay (int): Retraso inicial en segundos entre reintentos.
 
         Returns:
-            callable: Decorated function.
+            callable: Función decorada.
         """
 
         def decorator(func):
@@ -96,29 +96,29 @@ class AzureOpenAIAdapter:
                         if retries < max_retries:
                             wait_time = retry_delay * (2 ** (retries - 1))
                             logging.warning(
-                                f"Rate limit exceeded. Retry {retries + 1} of {max_retries}. Retrying in {wait_time} seconds."
+                                f"Se excedió el límite de tasa. Reintento {retries + 1} de {max_retries}. Reintentando en {wait_time} segundos."
                             )
                             time.sleep(wait_time)
                         else:
                             logging.error(
-                                f"Maximum retries exceeded for OpenAI API calls: {e}"
+                                f"Se excedió el número máximo de reintentos para llamadas a la API de OpenAI: {e}"
                             )
                             raise OpenAIError(
-                                f"Rate limit exceeded after multiple retries: {e}", e
+                                f"Se excedió el límite de tasa después de múltiples reintentos: {e}", e
                             )
                     except APIConnectionError as e:
-                        logging.error(f"Error connecting to OpenAI API: {e}")
-                        raise OpenAIError(f"Connection error: {e}", e)
+                        logging.error(f"Error al conectar con la API de OpenAI: {e}")
+                        raise OpenAIError(f"Error de conexión: {e}", e)
                     except APIStatusError as e:
                         logging.error(
-                            f"OpenAI API returned status %s: %s",
+                            f"La API de OpenAI devolvió el estado %s: %s",
                             e.status_code,
                             e.response,
                         )
-                        raise OpenAIError(f"API Status Error: {e}", e)
+                        raise OpenAIError(f"Error de estado de la API: {e}", e)
                     except Exception as e:
-                        logging.error(f"Error during OpenAI API call: {e}")
-                        raise OpenAIError(f"Unknown error: {e}", e)
+                        logging.error(f"Error durante la llamada a la API de OpenAI: {e}")
+                        raise OpenAIError(f"Error desconocido: {e}", e)
 
             return wrapper
 
@@ -127,19 +127,19 @@ class AzureOpenAIAdapter:
     @_retry_on_rate_limit()
     def get_completion(self, system_message: str, user_message: str) -> str:
         """
-        Obtains a text completion from Azure OpenAI.
+        Obtiene una finalización de texto de Azure OpenAI.
 
         Args:
-            system_message (str): The system message to guide the model.
-            user_message (str): The user's message to generate a completion for.
+            system_message (str): El mensaje del sistema para guiar al modelo.
+            user_message (str): El mensaje del usuario para generar una finalización para.
 
         Returns:
-            str: The text completion generated by the model.
+            str: La finalización de texto generada por el modelo.
 
         Raises:
-            OpenAIError: If an error occurs during the API call or if the response is invalid.
+            OpenAIError: Si ocurre un error durante la llamada a la API o si la respuesta no es válida.
         """
-        logging.info("Start: get_openai_completion")
+        logging.info("Inicio: get_openai_completion")
         message_text = [
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_message},
@@ -148,16 +148,16 @@ class AzureOpenAIAdapter:
 
     def _create_completion(self, messages: list[dict]) -> str:
         """
-        Internal function to create the completion (avoids duplication).
+        Función interna para crear la finalización (evita la duplicación).
 
         Args:
-            messages (list[dict]): List of message dictionaries.
+            messages (list[dict]): Lista de diccionarios de mensajes.
 
         Returns:
-            str: The content of the completion message.
+            str: El contenido del mensaje de finalización.
 
         Raises:
-            OpenAIError: If an error occurs during the API call or if the response is invalid.
+            OpenAIError: Si ocurre un error durante la llamada a la API o si la respuesta no es válida.
         """
         try:
             completion = self.client.chat.completions.create(
@@ -180,22 +180,22 @@ class AzureOpenAIAdapter:
                 # Returns the content of the message as string
                 return completion.choices[0].message.content
             else:
-                logging.warning("OpenAI returned no content in the choices.")
+                logging.warning("OpenAI no devolvió contenido en las opciones.")
                 # Raises a specific error instead of an empty string
                 raise OpenAIError(
-                    "OpenAI returned no completion options or empty content."
+                    "OpenAI no devolvió opciones de finalización o contenido vacío."
                 )
 
         except Exception as e:
-            # The decorator handles most API errors and converts them into OpenAIError.
-            # This block captures errors that occur *after* the call or if the decorator fails.
-            # We also re-raise it as OpenAIError for consistency.
-            # We check if it is already an OpenAIError to avoid wrapping it twice.
+            # El decorador maneja la mayoría de los errores de API y los convierte en OpenAIError.
+            # Este bloque captura errores que ocurren *después* de la llamada o si el decorador falla.
+            # También lo volvemos a generar como OpenAIError para mantener la coherencia.
+            # Verificamos si ya es un OpenAIError para evitar envolverlo dos veces.
             if isinstance(e, OpenAIError):
                 raise  # If it is already an OpenAIError (probably from the decorator), re-raise it
             else:
                 logging.exception(
-                    "Error during creation of completion or OpenAI progress: %s", e
+                    "Error durante la creación de la finalización o el progreso de OpenAI: %s", e
                 )
                 # Wraps other exceptions as OpenAIError
-                raise OpenAIError(f"Error in completion process: {e}") from e
+                raise OpenAIError(f"Error en el proceso de finalización: {e}") from e

@@ -222,21 +222,11 @@ def process_candidate_cv(inputblob: func.InputStream):
         # Inicializar adaptadores (usando variables de entorno directamente por ahora)
         # En el futuro, podrías cambiar esto para usar _initialize_adapters_with_keyvault
         try:
-            doc_intel_adapter = (
-                DocumentIntelligenceAdapter()
-            )  # Asume lectura de env vars en __init__
-            openai_adapter = (
-                AzureOpenAIAdapter()
-            )  # Asume lectura de env vars en __init__
-            rest_api_adapter = (
-                RestApiAdapter()
-            )  # Asume lectura de env vars en __init__
-            embedding_generator = (
-                EmbeddingGenerator()
-            )  # NUEVO - Asume lectura de env vars
-            ai_search_adapter = (
-                AzureAISearchAdapter()
-            )  # NUEVO - Asume lectura de env vars
+            doc_intel_adapter = DocumentIntelligenceAdapter()
+            openai_adapter = AzureOpenAIAdapter()
+            rest_api_adapter = RestApiAdapter()
+            embedding_generator = EmbeddingGenerator()
+            ai_search_adapter = AzureAISearchAdapter()
             logging.info(
                 f"[{file_name}] Adaptadores y clientes inicializados correctamente."
             )

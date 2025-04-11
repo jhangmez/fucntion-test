@@ -25,29 +25,29 @@ ENV_DOCUMENT_INTELLIGENCE_API_KEY = "DOCUMENT_INTELLIGENCE_API_KEY"
 
 def _retry_on_service_error(max_retries: int = 3, retry_delay: int = 30):
     """
-    Decorator to retry API calls in case of transient service errors.
+    Decorador para reintentar llamadas a la API en caso de errores de servicio transitorios.
 
     Args:
-        max_retries (int): Maximum number of retries.
-        retry_delay (int): Initial delay in seconds between retries.
+        max_retries (int): Número máximo de reintentos.
+        retry_delay (int): Retraso inicial en segundos entre reintentos.
 
     Returns:
-        callable: Decorated function.
+        callable: Función decorada.
     """
 
     def decorator(func):
-        @wraps(func)  # Preserves original function's metadata (name, docstring, etc.)
+        @wraps(func)  # Preserva los metadatos de la función original (nombre, docstring, etc.)
         def wrapper(*args, **kwargs):
             retries = 0
             while retries < max_retries:
                 try:
                     return func(*args, **kwargs)
-                except ServiceRequestError as e:  # Connection/network errors
+                except ServiceRequestError as e:  # Errores de conexión/red
                     retries += 1
                     if retries < max_retries:
                         wait_time = retry_delay * (2 ** (retries - 1))
                         logging.warning(
-                            "ServiceRequestError (attempt %d of %d). Retrying in %d seconds: %s",
+                            "ServiceRequestError (intento %d de %d). Reintentando en %d segundos: %s",
                             retries + 1,
                             max_retries,
                             wait_time,
@@ -56,10 +56,10 @@ def _retry_on_service_error(max_retries: int = 3, retry_delay: int = 30):
                         time.sleep(wait_time)
                     else:
                         logging.error(
-                            "Max retries exceeded for ServiceRequestError: %s", e
+                            "Se excedió el número máximo de reintentos para ServiceRequestError: %s", e
                         )
                         raise DocumentIntelligenceError(
-                            f"Service request failed after multiple retries: {e}"
+                            f"La solicitud de servicio falló después de múltiples reintentos: {e}"
                         ) from e
 
                 except HttpResponseError as e:
@@ -68,7 +68,7 @@ def _retry_on_service_error(max_retries: int = 3, retry_delay: int = 30):
                         if retries < max_retries:
                             wait_time = retry_delay * (2 ** (retries - 1))
                             logging.warning(
-                                "Too Many Requests (429) (attempt %d of %d). Retrying in %d seconds: %s",
+                                "Demasiadas solicitudes (429) (intento %d de %d). Reintentando en %d segundos: %s",
                                 retries + 1,
                                 max_retries,
                                 wait_time,
@@ -77,15 +77,15 @@ def _retry_on_service_error(max_retries: int = 3, retry_delay: int = 30):
                             time.sleep(wait_time)
                         else:
                             logging.error(
-                                "Max retries exceeded for 429 Too Many Requests: %s", e
+                                "Se excedió el número máximo de reintentos para 429 Demasiadas solicitudes: %s", e
                             )
                             raise DocumentIntelligenceError(
-                                f"Too Many Requests (429) after multiple retries: {e}"
+                                f"Demasiadas solicitudes (429) después de múltiples reintentos: {e}"
                             ) from e
                     elif retries < max_retries:
                         wait_time = retry_delay * (2 ** (retries - 1))
                         logging.warning(
-                            "HttpResponseError (attempt %d of %d). Retrying in %d seconds: %s",
+                            "HttpResponseError (intento %d de %d). Reintentando en %d segundos: %s",
                             retries + 1,
                             max_retries,
                             wait_time,
@@ -94,25 +94,25 @@ def _retry_on_service_error(max_retries: int = 3, retry_delay: int = 30):
                         time.sleep(wait_time)
                     else:
                         logging.error(
-                            "Max retries exceeded for HttpResponseError: %s", e
+                            "Se excedió el número máximo de reintentos para HttpResponseError: %s", e
                         )
                         raise DocumentIntelligenceError(
-                            f"HTTP error after multiple retries: {e}"
+                            f"Error HTTP después de múltiples reintentos: {e}"
                         ) from e
                 except ClientAuthenticationError as e:
-                    logging.error("Authentication error: %s", e)
-                    raise DocumentIntelligenceError(f"Authentication error: {e}") from e
+                    logging.error("Error de autenticación: %s", e)
+                    raise DocumentIntelligenceError(f"Error de autenticación: {e}") from e
                 except Exception as e:
                     if isinstance(e, NoContentExtractedError):
-                        logging.exception("No content extracted from document: %s", e)
+                        logging.exception("No se extrajo contenido del documento: %s", e)
                         raise
                     else:
                         logging.exception(
-                            "Error during document analysis with Document Intelligence: %s",
+                            "Error durante el análisis de documentos con Document Intelligence: %s",
                             e,
                         )
                         raise DocumentIntelligenceError(
-                            f"Error analyzing document: {e}"
+                            f"Error al analizar el documento: {e}"
                         ) from e
 
         return wrapper
@@ -121,7 +121,7 @@ def _retry_on_service_error(max_retries: int = 3, retry_delay: int = 30):
 
 
 class DocumentIntelligenceAdapter:
-    """Adapter for interacting with Azure AI Document Intelligence."""
+    """Adaptador para interactuar con Azure AI Document Intelligence."""
 
     def __init__(
         self,
@@ -129,52 +129,52 @@ class DocumentIntelligenceAdapter:
         api_key_env_var: str = ENV_DOCUMENT_INTELLIGENCE_API_KEY,
     ):
         """
-        Initializes the DocumentIntelligenceAdapter with the endpoint and API key.
+        Inicializa el DocumentIntelligenceAdapter con el punto de conexión y la clave de API.
 
         Args:
-            endpoint_env_var (str): The environment variable name for the Document Intelligence endpoint.
-            api_key_env_var (str): The environment variable name for the Document Intelligence API key.
+            endpoint_env_var (str): El nombre de la variable de entorno para el punto de conexión de Document Intelligence.
+            api_key_env_var (str): El nombre de la variable de entorno para la clave de API de Document Intelligence.
 
         Raises:
-            ValueError: If the endpoint or API key are not found in the environment variables.
+            ValueError: Si el punto de conexión o la clave de API no se encuentran en las variables de entorno.
         """
         self.endpoint = os.environ.get(endpoint_env_var)
         self.api_key = os.environ.get(api_key_env_var)
 
         if not self.endpoint or not self.api_key:
             raise ValueError(
-                "Missing required environment variables for Document Intelligence."
+                "Faltan variables de entorno requeridas para Document Intelligence."
             )
         self.client = self._create_client()
 
     def _create_client(self) -> DocumentIntelligenceClient:
-        """Creates and configures the Document Intelligence client.
+        """Crea y configura el cliente de Document Intelligence.
 
         Returns:
-            DocumentIntelligenceClient: Configured DocumentIntelligenceClient.
+            DocumentIntelligenceClient: Cliente de DocumentIntelligenceClient configurado.
         """
         return DocumentIntelligenceClient(
             endpoint=self.endpoint, credential=AzureKeyCredential(self.api_key)
         )
 
-    @_retry_on_service_error()  # Applies the decorator
+    @_retry_on_service_error()  # Aplica el decorador
     def analyze_cv(self, file_stream: BinaryIO) -> str:
         """
-        Extracts text from a CV using Document Intelligence.
+        Extrae texto de un CV utilizando Document Intelligence.
 
         Args:
-            file_stream (BinaryIO): A binary stream containing the CV (PDF).
+            file_stream (BinaryIO): Un flujo binario que contiene el CV (PDF).
 
         Returns:
-            str: The extracted text from the CV.
+            str: El texto extraído del CV.
 
         Raises:
-            FileProcessingError: If there is an error processing the file.
-            DocumentIntelligenceError: If there is an error communicating with Document Intelligence.
-            NoContentExtractedError: If no text was extracted from the CV.
+            FileProcessingError: Si hay un error al procesar el archivo.
+            DocumentIntelligenceError: Si hay un error al comunicarse con Document Intelligence.
+            NoContentExtractedError: Si no se extrajo ningún texto del CV.
         """
         try:
-            # "prebuilt-read" is the most suitable model for extracting text from a CV
+            # "prebuilt-read" es el modelo más adecuado para extraer texto de un CV
             poller = self.client.begin_analyze_document(
                 "prebuilt-read",
                 AnalyzeDocumentRequest(bytes_source=file_stream.read()),
@@ -184,19 +184,20 @@ class DocumentIntelligenceAdapter:
             if result.content:
                 return result.content
             else:
-                logging.warning("Document Intelligence returned no content.")
+                logging.warning("Document Intelligence no devolvió ningún contenido.")
                 raise NoContentExtractedError(
-                    "Document Intelligence did not extract any content from the document."
+                    "Document Intelligence no extrajo ningún contenido del documento."
                 )
 
         except Exception as e:
             if isinstance(e, NoContentExtractedError):
-                logging.exception("No content extracted from document: %s", e)
+                logging.exception("No se extrajo contenido del documento: %s", e)
                 raise
             else:
                 logging.exception(
-                    "Error during document analysis with Document Intelligence: %s", e
+                    "Error durante el análisis de documentos con Document Intelligence: %s",
+                    e,
                 )
                 raise DocumentIntelligenceError(
-                    f"Error analyzing document: {e}"
+                    f"Error al analizar el documento: {e}"
                 ) from e

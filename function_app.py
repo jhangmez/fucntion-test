@@ -83,10 +83,9 @@ SECRET_NAMES = {
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
-# --- Trigger HTTP para subir CV (sin cambios significativos) ---
+# --- Trigger HTTP para subir CV ---
 @app.route(route="upload-cv", methods=[func.HttpMethod.POST], auth_level=func.AuthLevel.FUNCTION)
 def upload_cv_http_trigger(req: func.HttpRequest) -> func.HttpResponse:
-    # ... (tu código actual para upload_cv_http_trigger está bien) ...
     logging.info("Función HTTP upload_cv_http_trigger procesando solicitud.")
     try:
         file_content = None
@@ -106,7 +105,7 @@ def upload_cv_http_trigger(req: func.HttpRequest) -> func.HttpResponse:
             content_type = req.headers.get("Content-Type", content_type)
             logging.info(f"Recibido archivo '{filename}' vía body, tipo: {content_type}")
 
-        if not filename: filename = "default_cv.pdf" # Mejor un nombre por defecto
+        if not filename: filename = "default_cv.pdf"
 
         connection_string = os.environ[CONNECTION_STRING_ENV_VAR]
         blob_service_client = BlobServiceClient.from_connection_string(connection_string)
@@ -143,7 +142,7 @@ def _get_blob_client(blob_service_client: BlobServiceClient, container_name: str
                     raise # Relanzar si no es un conflicto esperado
     except Exception as e:
         logging.error(f"Error inesperado al obtener/crear cliente de contenedor '{container_name}': {e}")
-        raise # Relanzar para indicar fallo crítico
+        raise
     return container_client.get_blob_client(blob_name)
 
 def _delete_blob_if_exists(blob_client: BlobClient, blob_description: str):
@@ -156,7 +155,6 @@ def _delete_blob_if_exists(blob_client: BlobClient, blob_description: str):
         logging.warning(f"No se encontró el blob para borrar (puede que ya se haya movido/borrado): {blob_description}")
     except Exception as e:
         logging.error(f"FALLO al borrar el blob {blob_description}: {e}", exc_info=True)
-        # Considerar si se debe relanzar o solo loguear dependiendo de la criticidad
 
 def _handle_processing_error(
     blob_service_client: BlobServiceClient,
@@ -213,7 +211,7 @@ def _handle_processing_error(
     if rest_api_adapter and candidate_id:
         try:
             logging.info(f"{file_name_log_prefix} Intentando actualizar estado de error en API para candidate_id: {candidate_id}...")
-            rest_api_adapter.update_candidate(candidate_id=candidate_id, error_message=error_reason[:1000]) # Limitar longitud
+            rest_api_adapter.update_candidate(candidate_id=candidate_id, error_message=error_reason[:1000])
             logging.info(f"{file_name_log_prefix} Estado de error actualizado en API.")
         except Exception as api_err:
             logging.error(f"{file_name_log_prefix} FALLO al actualizar estado de error en API: {api_err}", exc_info=True)
@@ -372,7 +370,7 @@ def _initialize_adapters(kv_uri: str) -> Tuple[DocumentIntelligenceAdapter, Azur
 # --- Trigger Principal del Blob ---
 @app.blob_trigger(
     arg_name="inputblob",
-    path=f"{CANDIDATES_CONTAINER}/{{name}}", # Usar f-string para claridad
+    path=f"{CANDIDATES_CONTAINER}/{{name}}",
     connection=CONNECTION_STRING_ENV_VAR,
 )
 def process_candidate_cv(inputblob: func.InputStream):

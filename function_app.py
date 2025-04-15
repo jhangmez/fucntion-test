@@ -7,7 +7,6 @@ import azure.functions as func
 from azure.storage.blob import BlobServiceClient, ContentSettings, BlobClient
 from azure.core.exceptions import ResourceNotFoundError, HttpResponseError
 
-# --- Tus imports de src --- (Asegúrate que estén correctos y disponibles)
 try:
     from src.infrastructure.ocr.document_intelligence_adapter import (
         DocumentIntelligenceAdapter, DocumentIntelligenceError, NoContentExtractedError
@@ -30,7 +29,6 @@ try:
     from src.shared.extract_values import get_id_candidate, get_id_rank
     from src.shared.sanitize_string import sanitize_for_id, format_text_for_embedding
 except ImportError as e:
-    # ... tu manejo de ImportError ...
     logging.critical(f"CRÍTICO: Falló la importación de módulos: {e}")
     # Define clases dummy para que el resto del código no falle en el import
     class DocumentIntelligenceAdapter: pass
@@ -61,7 +59,7 @@ CONNECTION_STRING_ENV_VAR = "AzureWebJobsStorage"
 CANDIDATES_CONTAINER = "candidates"
 RESULTS_POST_OPENAI_CONTAINER = "resultados-post-openai"
 MANUAL_ERROR_CONTAINER = "error"
-KEY_VAULT_URI_ENV_VAR = "KEY_VAULT_URI" # Asegúrate que esta variable exista
+KEY_VAULT_URI_ENV_VAR = "KEY_VAULT_URI"
 
 # --- Nombres Secretos Key Vault ---
 SECRET_NAMES = {
@@ -90,10 +88,7 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 def upload_cv_http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     # ... (tu código actual para upload_cv_http_trigger está bien) ...
     logging.info("Función HTTP upload_cv_http_trigger procesando solicitud.")
-    # ... (resto del código de upload_cv_http_trigger) ...
-    # --- Asegúrate que el logging y manejo de errores aquí sean robustos ---
     try:
-        # ... (tu lógica de recepción de archivo) ...
         file_content = None
         filename = None
         content_type = "application/octet-stream"
@@ -105,7 +100,6 @@ def upload_cv_http_trigger(req: func.HttpRequest) -> func.HttpResponse:
             content_type = file_from_form.mimetype or content_type
             logging.info(f"Recibido archivo '{filename}' vía form-data, tipo: {content_type}")
         else:
-            # ... (lógica para obtener del body) ...
             file_content = req.get_body()
             if not file_content: return func.HttpResponse("...", status_code=400)
             filename = os.path.basename(req.headers.get("X-Filename", "uploaded_cv.pdf"))
@@ -176,44 +170,44 @@ def _handle_processing_error(
     """Mueve el blob a error, crea JSON, actualiza API y borra el original."""
     logging.error(f"{file_name_log_prefix} Error Crítico: {error_reason}. Iniciando manejo de error...")
 
-    error_blob_name = original_blob_name
-    error_json_name = os.path.splitext(original_blob_name)[0] + ".json"
-    source_blob_client = blob_service_client.get_blob_client(container=original_container, blob=original_blob_name)
-    error_file_blob_client = _get_blob_client(blob_service_client, MANUAL_ERROR_CONTAINER, error_blob_name)
-    error_json_blob_client = _get_blob_client(blob_service_client, MANUAL_ERROR_CONTAINER, error_json_name)
+    # error_blob_name = original_blob_name
+    # error_json_name = os.path.splitext(original_blob_name)[0] + ".json"
+    # source_blob_client = blob_service_client.get_blob_client(container=original_container, blob=original_blob_name)
+    # error_file_blob_client = _get_blob_client(blob_service_client, MANUAL_ERROR_CONTAINER, error_blob_name)
+    # error_json_blob_client = _get_blob_client(blob_service_client, MANUAL_ERROR_CONTAINER, error_json_name)
 
     # 1. Copiar blob original a error
-    try:
-        if source_blob_client.exists():
-            logging.info(f"{file_name_log_prefix} Copiando blob a '{MANUAL_ERROR_CONTAINER}/{error_blob_name}'...")
-            copy_poller = error_file_blob_client.start_copy_from_url(source_blob_client.url)
-            copy_poller.wait() # Esperar a que termine la copia
-            status = copy_poller.status()
-            if status == 'success':
-                logging.info(f"{file_name_log_prefix} Blob copiado a error exitosamente.")
-            else:
-                 # Intentar obtener detalles del error de copia
-                 properties = error_file_blob_client.get_blob_properties()
-                 copy_status_desc = properties.copy.status_description
-                 logging.error(f"{file_name_log_prefix} FALLO la copia del blob a error. Status: {status}. Desc: {copy_status_desc}")
-                 # No continuar si la copia falla, el original se queda donde está
-                 return # Salir de la función de manejo de errores temprano
-        else:
-            logging.warning(f"{file_name_log_prefix} Blob original no encontrado en '{original_container}/{original_blob_name}', no se puede copiar a error.")
-            # Puede que ya se haya movido/borrado, continuar con los otros pasos
+    # try:
+    #     if source_blob_client.exists():
+    #         logging.info(f"{file_name_log_prefix} Copiando blob a '{MANUAL_ERROR_CONTAINER}/{error_blob_name}'...")
+    #         copy_poller = error_file_blob_client.start_copy_from_url(source_blob_client.url)
+    #         copy_poller.wait() # Esperar a que termine la copia
+    #         status = copy_poller.status()
+    #         if status == 'success':
+    #             logging.info(f"{file_name_log_prefix} Blob copiado a error exitosamente.")
+    #         else:
+    #              # Intentar obtener detalles del error de copia
+    #              properties = error_file_blob_client.get_blob_properties()
+    #              copy_status_desc = properties.copy.status_description
+    #              logging.error(f"{file_name_log_prefix} FALLO la copia del blob a error. Status: {status}. Desc: {copy_status_desc}")
+    #              # No continuar si la copia falla, el original se queda donde está
+    #              return # Salir de la función de manejo de errores temprano
+    #     else:
+    #         logging.warning(f"{file_name_log_prefix} Blob original no encontrado en '{original_container}/{original_blob_name}', no se puede copiar a error.")
+    #         # Puede que ya se haya movido/borrado, continuar con los otros pasos
 
-    except Exception as e:
-        logging.error(f"{file_name_log_prefix} FALLO al intentar copiar blob a error: {e}", exc_info=True)
-        # No continuar si la copia falla
+    # except Exception as e:
+    #     logging.error(f"{file_name_log_prefix} FALLO al intentar copiar blob a error: {e}", exc_info=True)
+    #     # No continuar si la copia falla
 
     # 2. Crear archivo JSON de error
-    try:
-        error_data = json.dumps({"error": error_reason})
-        logging.info(f"{file_name_log_prefix} Creando archivo JSON de error en '{MANUAL_ERROR_CONTAINER}/{error_json_name}'...")
-        error_json_blob_client.upload_blob(error_data, overwrite=True, content_settings=ContentSettings(content_type="application/json"))
-        logging.info(f"{file_name_log_prefix} Archivo JSON de error creado.")
-    except Exception as e:
-        logging.error(f"{file_name_log_prefix} FALLO al crear archivo JSON de error: {e}", exc_info=True)
+    # try:
+    #     error_data = json.dumps({"error": error_reason})
+    #     logging.info(f"{file_name_log_prefix} Creando archivo JSON de error en '{MANUAL_ERROR_CONTAINER}/{error_json_name}'...")
+    #     error_json_blob_client.upload_blob(error_data, overwrite=True, content_settings=ContentSettings(content_type="application/json"))
+    #     logging.info(f"{file_name_log_prefix} Archivo JSON de error creado.")
+    # except Exception as e:
+    #     logging.error(f"{file_name_log_prefix} FALLO al crear archivo JSON de error: {e}", exc_info=True)
 
     # 3. Actualizar API REST (si es posible)
     if rest_api_adapter and candidate_id:
@@ -231,12 +225,16 @@ def _handle_processing_error(
 
     # 4. Borrar blob original (SOLO SI LA COPIA FUE EXITOSA o si el original no existía)
     # Si la copia falló, el blob original debe permanecer para reintentar/investigar
-    if 'copy_poller' in locals() and copy_poller.status() == 'success':
-         _delete_blob_if_exists(source_blob_client, f"original ({original_container}/{original_blob_name}) después de copiar a error")
-    elif 'copy_poller' not in locals() : # Si el blob original no existía
-         logging.info(f"{file_name_log_prefix} Blob original no existía, no se requiere borrado.")
-    else: # Si la copia falló
-         logging.warning(f"{file_name_log_prefix} La copia a error falló, NO se borrará el blob original: {original_container}/{original_blob_name}")
+    # if 'copy_poller' in locals() and copy_poller.status() == 'success':
+    #      _delete_blob_if_exists(source_blob_client, f"original ({original_container}/{original_blob_name}) después de copiar a error")
+    # elif 'copy_poller' not in locals() : # Si el blob original no existía
+    #      logging.info(f"{file_name_log_prefix} Blob original no existía, no se requiere borrado.")
+    # else: # Si la copia falló
+    #      logging.warning(f"{file_name_log_prefix} La copia a error falló, NO se borrará el blob original: {original_container}/{original_blob_name}")
+
+    #BORRA EL BLOB ORIGINAL
+    source_blob_client = blob_service_client.get_blob_client(container=original_container, blob=original_blob_name)
+    _delete_blob_if_exists(source_blob_client, f"original ({original_container}/{original_blob_name}) después de copiar a error")
 
 def _save_intermediate_result_and_cleanup(
     blob_service_client: BlobServiceClient,
@@ -545,6 +543,11 @@ def process_candidate_cv(inputblob: func.InputStream):
                 raise EmbeddingAPIError("Generación de embeddings falló o devolvió resultado inconsistente/vacío.")
             logging.info(f"{log_prefix} Embeddings generados para {len(chunks)} chunks.")
 
+            if cv_score is not None:
+                 scores_json_string = json.dumps(cv_score, separators=(',', ':'))
+            else:
+                 scores_json_string = None
+
             # 7c. Preparar Documentos para AI Search
             logging.info(f"{log_prefix} Paso 7c: Preparando documentos para AI Search...")
             documents_to_upload = []
@@ -561,11 +564,11 @@ def process_candidate_cv(inputblob: func.InputStream):
                     "content": chunk,
                     "embedding": embeddings[i],
                     "candidateId": candidate_id,
-                    "candidateName": candidate_name,
-                    "profileName": profile_description, # Guardar el nombre original del perfil
+                    "profileName": profile_description,
                     "rankId": rank_id,
-                    "averageScore": float(promedio_scores), # Convertir a float si AI Search espera número
-                    "sourceFile": file_name, # Nombre del archivo original
+                    "averageScore": float(promedio_scores),
+                    "sourceFile": file_name,
+                    "scores":scores_json_string
                 }
                 documents_to_upload.append(document)
 
@@ -623,11 +626,11 @@ def process_candidate_cv(inputblob: func.InputStream):
             _handle_processing_error(
                 blob_service_client=blob_service_client,
                 original_container=CANDIDATES_CONTAINER,
-                original_blob_name=file_name, # Pasar solo el nombre del blob aquí
+                original_blob_name=file_name,
                 error_reason=error_details,
                 file_name_log_prefix=log_prefix,
-                rest_api_adapter=rest_api_adapter, # Pasa el adaptador si está inicializado
-                candidate_id=candidate_id # Pasa el ID si se extrajo
+                rest_api_adapter=rest_api_adapter,
+                candidate_id=candidate_id
             )
         else:
             # Si blob_service_client no se inicializó, solo podemos loguear

@@ -26,7 +26,7 @@ Debes basarte exclusivamente en la información explícitamente mencionada en el
 No debes inferir ni deducir habilidades o experiencias que no estén claramente documentadas en el CV.
 Si necesitas calcular los años de experiencia hasta la actualidad, considera que estamos en {current_date}.
 Al asignar puntajes a cada ítem, asegúrate de justificar cada calificación con referencias directas a la información proporcionada en el CV en "cvAnalysis".
-Tambien debes ubicar el nombre del candidato y completar en donde dice "nameCandidate", este debe ser en nombres y Apellidos.
+Tambien debes ubicar el nombre del candidato y completar en donde dice "nameCandidate", este debe ser en nombres y Apellidos, si no se encuentra los nombres, escribes "NoName".
 
 Criterios de evaluación del perfil {profile}:
 

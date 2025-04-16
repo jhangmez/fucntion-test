@@ -2,7 +2,7 @@ from datetime import datetime
 
 
 def prompt_system(
-    profile: str, criterios: str, cv_candidato: str = None, current_date: str = None
+    profile: str, criterios: str, current_date: str = None
 ) -> str:
     """
     Genera el prompt para un sistema de análisis de Cvs.
@@ -26,7 +26,7 @@ Debes basarte exclusivamente en la información explícitamente mencionada en el
 No debes inferir ni deducir habilidades o experiencias que no estén claramente documentadas en el CV.
 Si necesitas calcular los años de experiencia hasta la actualidad, considera que estamos en {current_date}.
 Al asignar puntajes a cada ítem, asegúrate de justificar cada calificación con referencias directas a la información proporcionada en el CV en "cvAnalysis".
-Tambien debes ubicar el nombre del candidato y completar en donde dice "nameCandidate", este debe ser en nombres y Apellidos, si no se encuentra los nombres, escribes "NoName".
+Tambien debes ubicar el nombre del candidato y completar en donde dice "nameCandidate", este debe ser en nombres y Apellidos, si no se encuentra los nombres del cv, envias vacio en ese parametro.
 
 Criterios de evaluación del perfil {profile}:
 
@@ -70,7 +70,5 @@ Ejemplo de cómo DEBERÍA verse la estructura JSON si los criterios fueran A, B,
 --- FIN FORMATO DE SALIDA OBLIGATORIO ---
 
 Este es el CV:
-
-{cv_candidato}
 """
     return prompt

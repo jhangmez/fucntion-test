@@ -2,8 +2,8 @@
 import os
 import logging
 from flask import Flask, request, jsonify
-import json # Importar json para formatear el body
-from datetime import datetime # Para añadir timestamp al log
+import json  # Importar json para formatear el body
+from datetime import datetime  # Para añadir timestamp al log
 
 # Configuración básica de logging (opcional, Flask ya loguea a consola)
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -18,20 +18,20 @@ LOG_FILE = "mock_api_log.txt"
 def log_to_file(endpoint: str, method: str, received_data: any, response_data: any, status_code: int):
     """Escribe la información de la solicitud/respuesta en el archivo de log."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    separator = "\n" + "#" * 50 + "\n" # Separador más visible
+    separator = "\n" + "#" * 50 + "\n"  # Separador más visible
 
     log_entry = f"{separator}"
     log_entry += f"Timestamp: {timestamp}\n"
     log_entry += f"Endpoint : {endpoint}\n"
     log_entry += f"Method   : {method}\n"
-    log_entry += f"Received : {json.dumps(received_data, indent=2) if received_data else 'N/A'}\n" # Formatear JSON
-    log_entry += f"Response : Status={status_code}, Body={json.dumps(response_data, indent=2) if isinstance(response_data, (dict, list)) else response_data}\n" # Formatear JSON si es dict/list
+    log_entry += f"Received : {json.dumps(received_data, indent=2, ensure_ascii=False) if received_data else 'N/A'}\n"  # Formatear JSON
+    log_entry += f"Response : Status={status_code}, Body={json.dumps(response_data, indent=2, ensure_ascii=False) if isinstance(response_data, (dict, list)) else response_data}\n"  # Formatear JSON si es dict/list
 
     try:
-        with open(LOG_FILE, "a", encoding="utf-8") as f: # Modo 'a' para añadir (append)
+        with open(LOG_FILE, "a", encoding="utf-8") as f:  # Modo 'a' para añadir (append)
             f.write(log_entry)
     except Exception as e:
-        print(f"ERROR: No se pudo escribir en el archivo de log '{LOG_FILE}': {e}") # Log de error a consola si falla escritura
+        print(f"ERROR: No se pudo escribir en el archivo de log '{LOG_FILE}': {e}")  # Log de error a consola si falla escritura
 
 
 # --- Simulación de Endpoints ---
@@ -101,7 +101,7 @@ G. Años de experiencia en framework de procesamiento de datos Spark.
         "variablesContent": fake_variables_content
     }
     status_code = 200
-    log_to_file(endpoint, method, {"rank_id": rank_id}, response_data, status_code) # Loguear el ID recibido
+    log_to_file(endpoint, method, {"rank_id": rank_id}, response_data, status_code)  # Loguear el ID recibido
     logging.info(f"  <- Devolviendo datos falsos para rank_id {rank_id}.")
     return jsonify(response_data), status_code
 
@@ -148,13 +148,13 @@ def save_resumen_mock():
          logging.error("  <- Datos inválidos recibidos en SaveResumen.")
          response_data = {"error": "Datos inválidos"}
          status_code = 400
-         log_to_file(endpoint, method, data, response_data, status_code) # Loguear el error
+         log_to_file(endpoint, method, data, response_data, status_code)  # Loguear el error
          return jsonify(response_data), status_code
 
     candidate_id = data.get('candidateId')
     response_data = {"message": f"Resumen para {candidate_id} guardado (simulado)"}
-    status_code = 200 # O 201
-    log_to_file(endpoint, method, data, response_data, status_code) # Loguear éxito
+    status_code = 200  # O 201
+    log_to_file(endpoint, method, data, response_data, status_code)  # Loguear éxito
     logging.info(f"  <- Resumen guardado para candidate_id: {candidate_id}.")
     return jsonify(response_data), status_code
 

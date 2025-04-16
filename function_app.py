@@ -266,7 +266,7 @@ def _save_intermediate_result_and_cleanup(
             "error_details": error_details
         }
     }
-    intermediate_json = json.dumps(intermediate_data, indent=2) # Indentado para legibilidad
+    intermediate_json = json.dumps(intermediate_data, indent=2, ensure_ascii=False)
 
     # Metadata para búsqueda rápida (opcional pero útil)
     metadata = {
@@ -486,13 +486,13 @@ def process_candidate_cv(inputblob: func.InputStream):
         system_prompt = prompt_system(
             profile=profile_description,
             criterios=variables_content,
-            cv_candidato=extracted_text,
         )
         if not system_prompt:
              raise ValueError("El prompt generado para OpenAI está vacío.")
-
+        if not extracted_text:
+             extracted_text="No se envio ningun contenido, debes retornar vacio."
         analysis_result_str = openai_adapter.get_completion(
-            system_message=system_prompt, user_message=""
+            system_message=system_prompt, user_message=extracted_text
         )
         if not analysis_result_str:
             raise OpenAIError(f"Azure OpenAI devolvió una respuesta vacía para {file_name}.")
@@ -542,7 +542,7 @@ def process_candidate_cv(inputblob: func.InputStream):
             logging.info(f"{log_prefix} Embeddings generados para {len(chunks)} chunks.")
 
             if cv_score is not None:
-                 scores_json_string = json.dumps(cv_score, separators=(',', ':'))
+                 scores_json_string = json.dumps(cv_score, separators=(',', ':'), ensure_ascii=False)
             else:
                  scores_json_string = None
 

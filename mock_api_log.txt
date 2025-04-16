@@ -810,3 +810,465 @@ Received : {
 Response : Status=200, Body={
   "message": "Estado para f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2 actualizado (simulado)"
 }
+##################################################
+Timestamp: 2025-04-16 14:49:11
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-16 14:49:11
+Endpoint : /Resumen/518e3052-ad83-4210-82d0-640c6437a4c7
+Method   : GET
+Received : {
+  "rank_id": "518e3052-ad83-4210-82d0-640c6437a4c7"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. A\u00f1os de experiencia total.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nB. A\u00f1os de experiencia en Modelos Predictivos.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nC. A\u00f1os de experiencia en MLops.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\nD. A\u00f1os de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: as\u00edgnale 100%\n- Si tiene experiencia en Azure y AWS: as\u00edgnale 80%\n- Si solo tiene experiencia en Azure: as\u00edgnale 50%\n- Si no tiene experiencia en Azure: as\u00edgnale 0%\nE. A\u00f1os de experiencia en bases de datos estructuradas.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nF. A\u00f1os de experiencia en an\u00e1lisis de datos con Python.\n- 5 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 4 a\u00f1os: as\u00edgnale 75%\n- 3 a\u00f1os: as\u00edgnale 30%\n- Menos de 2 a\u00f1os: as\u00edgnale 0%\nG. A\u00f1os de experiencia en framework de procesamiento de datos Spark.\n- 3 o m\u00e1s a\u00f1os: as\u00edgnale 100%\n- 2 a\u00f1os: as\u00edgnale 75%\n- 1 a\u00f1o: as\u00edgnale 45%\n- Menos de 1 a\u00f1o: as\u00edgnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-16 14:49:18
+Endpoint : /Resumen/AddScores
+Method   : POST
+Received : {
+  "candidateId": "f754f74a-7160-4443-a282-cd56aa66fb3a",
+  "scores": {
+    "A": 0,
+    "B": 0,
+    "C": 0,
+    "D": 80,
+    "E": 0,
+    "F": 0,
+    "G": 0
+  }
+}
+Response : Status=201, Body={
+  "message": "Scores para f754f74a-7160-4443-a282-cd56aa66fb3a recibidos (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 14:49:18
+Endpoint : /Resumen/Save
+Method   : POST
+Received : {
+  "candidateId": "f754f74a-7160-4443-a282-cd56aa66fb3a",
+  "transcription": "RESUMEN PROFESIONAL:\nEgresado de la Facultad de Ingenier\u00eda de Sistemas de la Universidad Nacional del Callao con conocimientos destacados, capaz de desempe\u00f1arme en diferentes \u00e1reas de trabajo de Entidades P\u00fablicas y Privadas. Me defino como un futuro profesional competente y responsable, capaz de trabajar satisfactoriamente en equipo y bajo presi\u00f3n. Soy una persona din\u00e1mica, con vocaci\u00f3n de servicio, honrada, con deseos de superaci\u00f3n y capacidad de desarrollarme muy bien en el \u00e1mbito social - laboral.\nFORMACION:\nGrado Acad\u00e9mico: Universitario A\u00f1os: 2015-2019 Centro de Estudios: Universidad Nacional del Callao Especializaci\u00f3n: Ingenier\u00eda de Sistemas\nEXPERIENCIA LABORAL\nJoven Profesional - INDRA PERU SAC Periodo: Agosto 2020 - Julio 2021 Proyecto SUNAT: Agosto 2020 - Mayo 2021\n-Reportes diario de Mesas Agiles, Impedimentos, Riesgos y Encuestas de Satisfacci\u00f3n empleando Power BI con informaci\u00f3n de la Plataforma Jira\nProyecto BI (Telefonica): Mayo 2021 - Julio 2021\n-Construcci\u00f3n de procesos Nifi en el Proyecto de Big Data (Spark-Hive-Python) para el cumplimiento de los requerimientos del usuario.\nPracticante Pre Profesional de Data Analytics - Clinica Internacional\nPeriodo: Agosto 2019 - Enero 2020\n-Analizar los datos estructurados y no estructurados del \u00e1rea de Servicios Cl\u00ednicos. - Resolver las inconsistencias de datos que se encuentren en coordinaci\u00f3n con los responsables de las \u00e1reas implicadas.\n-Apoyar en la Automatizaci\u00f3n de generaci\u00f3n de los indicadores del \u00e1rea de Servicios Cl\u00ednicos en Power BI\nPracticante de Sistemas- Instituto Nacional de Estad\u00edstica e Inform\u00e1tica Periodo: Abril 2019 - Julio 2019 -An\u00e1lisis de Testing para prueba de carga y prueba de vulnerabilidad utilizando herramientas: Sonarqube, J Meter y OWASP\n-Uso de la herramienta Power BI para apoyo de informe ejecutivo\n-Realizaci\u00f3n de consultas en SQL Server\n-Desarrollo web utilizando Java (con frameworks SPRING) y .NET\n-Uso de SPSS para an\u00e1lisis de encuestas internas y externas -Investigaci\u00f3n acerca de proyectos que involucraban el uso de gobierno digital a nivel latinoamericano\nRevisor de Datos- Instituto Nacional de Estad\u00edstica e Inform\u00e1tica Periodo: Febrero 2018 -Marzo 2018 -Realizaci\u00f3n de consolidados de todos los jefes de grupo. -Registro de control de calidad de las \u00e1reas rurales y urbanas utilizando Power BI -Registro de informaci\u00f3n no coberturado.\nDigitador- Grupo de An\u00e1lisis para el Desarrollo\nPeriodo: Enero 2017 -Marzo 2017 -Digitador de las actividades de encuestas a hogares. -Uso de las herramientas Qlikview, Power BI y Tableau para la realizaci\u00f3n de reportes -Apoyo en la limpieza de base de datos utilizando SQL Server\nAPTITUDES:\n-Empat\u00eda -Puntualidad\n-Liderazgo y capacidad de delegaci\u00f3n de tareas\n-Adaptaci\u00f3n -Responsabilidad y seriedad\n-Trabajo en equipo\n-Proactivo y de trata cordial\nIDIOMA:\nEspa\u00f1ol: Idioma Nativo Ingl\u00e9s: Intermedio\nCONOCIMIENTOS INFORMATICOS:\nLenguajes de programaci\u00f3n:\nC++ , Java, PHP , Desarrollo Web (HTML, CSS, Bootstrap, JavaScript), Python, .NET , RStudio , Matlab.\nBase de datos:\nMicrosoft SQL Server, Microsoft Access , MySQL , MongoDB , Oracle\nOtros:\nMicrosoft Excel (Avanzado), Microsoft Word (Avanzado), Microsoft Power Point (Avanzado), Microsoft Project (Avanzado), Visio (Avanzado), Power BI (Avanzado), Publisher (Avanzado), Minitab (B\u00e1sico), OWASP (prueba de vulnerabilidad), Tableau (Intermedio),\nJMeter (prueba de estr\u00e9s), Putty, Jira, Gesti\u00f3n de Proyectos, Transformaci\u00f3n Digital, Growth Hacking, Azure, Docker, Design Thinking, SAP S/4 HANNA, SAP BUSINESS ONE, Qlick Sense, AWS\nCERTIFICACIONES:\nCertiprof :\nCyber Security Foundation Professional , Certificate Kanban Foundation - KIKF , DevOps Essentials Professional , Certificate Scrum Foundation Professional , Certificate Survey Contributor of The Agile Adoption Report 2021 , Scrum Master Professional Certificate - SMPC , Scrum Product Owner Professional Certificate , Lifelong Learning , Remote Work and Virtual Collaboration Certificate, Big Data Professional Certificate, Scrum Developer Professional Certificate - SDPC\nAIGPE:\nCERTIFIED LEAN SIX SIGMA YELLOW BELT , CERTIFIED PROCESS MAPPING SPECIALIST, CERTIFIED LEAN SIX SIGMA WHITE BELT",
+  "score": 11.43,
+  "candidateName": "NoName",
+  "analysis": "Justificaci\u00f3n A: El candidato tiene experiencia laboral desde agosto de 2020 hasta julio de 2021 en INDRA PERU SAC y antes de eso fue practicante desde agosto de 2019 hasta enero de 2020 en Clinica Internacional, lo que suma un total de aproximadamente 1 a\u00f1o y 9 meses de experiencia, por lo que se le asigna 0%. Justificaci\u00f3n B: No se menciona experiencia espec\u00edfica en modelos predictivos, por lo que se le asigna 0%. Justificaci\u00f3n C: No se menciona experiencia en MLOps, por lo que se le asigna 0%. Justificaci\u00f3n D: El candidato menciona experiencia en Azure y AWS, por lo que se le asigna 80%. Justificaci\u00f3n E: Tiene experiencia en bases de datos estructuradas, espec\u00edficamente en SQL Server, pero no se especifica el tiempo, por lo que se le asigna 0%. Justificaci\u00f3n F: El candidato menciona experiencia en an\u00e1lisis de datos con Python, pero no se especifica el tiempo, por lo que se le asigna 0%. Justificaci\u00f3n G: No se menciona experiencia en Spark, por lo que se le asigna 0%."
+}
+Response : Status=200, Body={
+  "message": "Resumen para f754f74a-7160-4443-a282-cd56aa66fb3a guardado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 14:49:18
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "f754f74a-7160-4443-a282-cd56aa66fb3a",
+  "errorMessage": null
+}
+Response : Status=200, Body={
+  "message": "Estado para f754f74a-7160-4443-a282-cd56aa66fb3a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 15:49:27
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-16 15:49:27
+Endpoint : /Resumen/518e3052-ad83-4210-82d0-640c6437a4c7
+Method   : GET
+Received : {
+  "rank_id": "518e3052-ad83-4210-82d0-640c6437a4c7"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. Años de experiencia total.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nB. Años de experiencia en Modelos Predictivos.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nC. Años de experiencia en MLops.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\nD. Años de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: asígnale 100%\n- Si tiene experiencia en Azure y AWS: asígnale 80%\n- Si solo tiene experiencia en Azure: asígnale 50%\n- Si no tiene experiencia en Azure: asígnale 0%\nE. Años de experiencia en bases de datos estructuradas.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nF. Años de experiencia en análisis de datos con Python.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nG. Años de experiencia en framework de procesamiento de datos Spark.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-16 15:49:31
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "f754f74a-7160-4443-a282-cd56aa66fb3a",
+  "errorMessage": "OpenAIError: (\"Error desconocido: Error en el proceso de finalización: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}\", OpenAIError(\"Error en el proceso de finalización: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}\"))"
+}
+Response : Status=200, Body={
+  "message": "Estado para f754f74a-7160-4443-a282-cd56aa66fb3a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 15:49:34
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-16 15:49:34
+Endpoint : /Resumen/518e3052-ad83-4210-82d0-640c6437a4c7
+Method   : GET
+Received : {
+  "rank_id": "518e3052-ad83-4210-82d0-640c6437a4c7"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. Años de experiencia total.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nB. Años de experiencia en Modelos Predictivos.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nC. Años de experiencia en MLops.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\nD. Años de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: asígnale 100%\n- Si tiene experiencia en Azure y AWS: asígnale 80%\n- Si solo tiene experiencia en Azure: asígnale 50%\n- Si no tiene experiencia en Azure: asígnale 0%\nE. Años de experiencia en bases de datos estructuradas.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nF. Años de experiencia en análisis de datos con Python.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nG. Años de experiencia en framework de procesamiento de datos Spark.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-16 15:49:37
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "f754f74a-7160-4443-a282-cd56aa66fb3a",
+  "errorMessage": "OpenAIError: (\"Error desconocido: Error en el proceso de finalización: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}\", OpenAIError(\"Error en el proceso de finalización: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}\"))"
+}
+Response : Status=200, Body={
+  "message": "Estado para f754f74a-7160-4443-a282-cd56aa66fb3a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 15:49:38
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-16 15:49:38
+Endpoint : /Resumen/518e3052-ad83-4210-82d0-640c6437a4c7
+Method   : GET
+Received : {
+  "rank_id": "518e3052-ad83-4210-82d0-640c6437a4c7"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. Años de experiencia total.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nB. Años de experiencia en Modelos Predictivos.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nC. Años de experiencia en MLops.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\nD. Años de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: asígnale 100%\n- Si tiene experiencia en Azure y AWS: asígnale 80%\n- Si solo tiene experiencia en Azure: asígnale 50%\n- Si no tiene experiencia en Azure: asígnale 0%\nE. Años de experiencia en bases de datos estructuradas.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nF. Años de experiencia en análisis de datos con Python.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nG. Años de experiencia en framework de procesamiento de datos Spark.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-16 15:49:40
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "f754f74a-7160-4443-a282-cd56aa66fb3a",
+  "errorMessage": "OpenAIError: (\"Error desconocido: Error en el proceso de finalización: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}\", OpenAIError(\"Error en el proceso de finalización: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}\"))"
+}
+Response : Status=200, Body={
+  "message": "Estado para f754f74a-7160-4443-a282-cd56aa66fb3a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 15:49:41
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-16 15:49:41
+Endpoint : /Resumen/518e3052-ad83-4210-82d0-640c6437a4c7
+Method   : GET
+Received : {
+  "rank_id": "518e3052-ad83-4210-82d0-640c6437a4c7"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. Años de experiencia total.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nB. Años de experiencia en Modelos Predictivos.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nC. Años de experiencia en MLops.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\nD. Años de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: asígnale 100%\n- Si tiene experiencia en Azure y AWS: asígnale 80%\n- Si solo tiene experiencia en Azure: asígnale 50%\n- Si no tiene experiencia en Azure: asígnale 0%\nE. Años de experiencia en bases de datos estructuradas.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nF. Años de experiencia en análisis de datos con Python.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nG. Años de experiencia en framework de procesamiento de datos Spark.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-16 15:49:44
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "f754f74a-7160-4443-a282-cd56aa66fb3a",
+  "errorMessage": "OpenAIError: (\"Error desconocido: Error en el proceso de finalización: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}\", OpenAIError(\"Error en el proceso de finalización: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}\"))"
+}
+Response : Status=200, Body={
+  "message": "Estado para f754f74a-7160-4443-a282-cd56aa66fb3a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 15:49:45
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-16 15:49:45
+Endpoint : /Resumen/518e3052-ad83-4210-82d0-640c6437a4c7
+Method   : GET
+Received : {
+  "rank_id": "518e3052-ad83-4210-82d0-640c6437a4c7"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. Años de experiencia total.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nB. Años de experiencia en Modelos Predictivos.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nC. Años de experiencia en MLops.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\nD. Años de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: asígnale 100%\n- Si tiene experiencia en Azure y AWS: asígnale 80%\n- Si solo tiene experiencia en Azure: asígnale 50%\n- Si no tiene experiencia en Azure: asígnale 0%\nE. Años de experiencia en bases de datos estructuradas.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nF. Años de experiencia en análisis de datos con Python.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nG. Años de experiencia en framework de procesamiento de datos Spark.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-16 15:49:48
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "f754f74a-7160-4443-a282-cd56aa66fb3a",
+  "errorMessage": "OpenAIError: (\"Error desconocido: Error en el proceso de finalización: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}\", OpenAIError(\"Error en el proceso de finalización: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}\"))"
+}
+Response : Status=200, Body={
+  "message": "Estado para f754f74a-7160-4443-a282-cd56aa66fb3a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:14:17
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-16 16:14:17
+Endpoint : /Resumen/518e3052-ad83-4210-82d0-640c6437a4c7
+Method   : GET
+Received : {
+  "rank_id": "518e3052-ad83-4210-82d0-640c6437a4c7"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. Años de experiencia total.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nB. Años de experiencia en Modelos Predictivos.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nC. Años de experiencia en MLops.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\nD. Años de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: asígnale 100%\n- Si tiene experiencia en Azure y AWS: asígnale 80%\n- Si solo tiene experiencia en Azure: asígnale 50%\n- Si no tiene experiencia en Azure: asígnale 0%\nE. Años de experiencia en bases de datos estructuradas.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nF. Años de experiencia en análisis de datos con Python.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nG. Años de experiencia en framework de procesamiento de datos Spark.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:14:21
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "f754f74a-7160-4443-a282-cd56aa66fb3a",
+  "errorMessage": "Error en ValidationOrCalculation: TypeError: APIError.__init__() missing 1 required positional argument: 'request'"
+}
+Response : Status=200, Body={
+  "message": "Estado para f754f74a-7160-4443-a282-cd56aa66fb3a actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:18:17
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-16 16:18:17
+Endpoint : /Resumen/91b477c8-c9fc-4859-9e50-3578c56a0345
+Method   : GET
+Received : {
+  "rank_id": "91b477c8-c9fc-4859-9e50-3578c56a0345"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. Años de experiencia total.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nB. Años de experiencia en Modelos Predictivos.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nC. Años de experiencia en MLops.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\nD. Años de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: asígnale 100%\n- Si tiene experiencia en Azure y AWS: asígnale 80%\n- Si solo tiene experiencia en Azure: asígnale 50%\n- Si no tiene experiencia en Azure: asígnale 0%\nE. Años de experiencia en bases de datos estructuradas.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nF. Años de experiencia en análisis de datos con Python.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nG. Años de experiencia en framework de procesamiento de datos Spark.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:18:21
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2",
+  "errorMessage": "Error en ValidationOrCalculation: TypeError: APIError.__init__() missing 1 required positional argument: 'request'"
+}
+Response : Status=200, Body={
+  "message": "Estado para f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2 actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:40:20
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-16 16:40:20
+Endpoint : /Resumen/91b477c8-c9fc-4859-9e50-3578c56a0345
+Method   : GET
+Received : {
+  "rank_id": "91b477c8-c9fc-4859-9e50-3578c56a0345"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. Años de experiencia total.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nB. Años de experiencia en Modelos Predictivos.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nC. Años de experiencia en MLops.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\nD. Años de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: asígnale 100%\n- Si tiene experiencia en Azure y AWS: asígnale 80%\n- Si solo tiene experiencia en Azure: asígnale 50%\n- Si no tiene experiencia en Azure: asígnale 0%\nE. Años de experiencia en bases de datos estructuradas.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nF. Años de experiencia en análisis de datos con Python.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nG. Años de experiencia en framework de procesamiento de datos Spark.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:40:25
+Endpoint : /Resumen/AddScores
+Method   : POST
+Received : {
+  "candidateId": "f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2",
+  "scores": {
+    "A": 0,
+    "B": 30,
+    "C": 0,
+    "D": 75,
+    "E": 75
+  }
+}
+Response : Status=201, Body={
+  "message": "Scores para f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2 recibidos (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:40:25
+Endpoint : /Resumen/Save
+Method   : POST
+Received : {
+  "candidateId": "f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2",
+  "transcription": "Jesus Yair Juarez Ingeniero de datos\nArgentina | +54 9 3513426914 | juarezjesusyair@gmail.com Linkedin - Github\nSoy Ingeniero de Datos con un trasfondo en Ciencia de Datos, lo que me ha permitido gestionar grandes volúmenes de datos, optimizarlos, y aplicar técnicas avanzadas desde la limpieza y transformación hasta la modelación y visualización de resultados clave. Estoy especializado en la creación de pipelines de datos eficientes y en la extracción de insights valiosos mediante Ciencia de Datos. Tengo experiencia en el uso de Google Cloud Platform (GCP) para la implementación de soluciones en la nube, arquitectura de datos y generación de reportes. Recientemente obtuve la certificación como Científico de Datos, lo que me ha dotado de habilidades adicionales en Machine Learning y análisis predictivo.\nPROYECTOS\nData Scientist - Google Yelp Reviews Experiencia académica. Henry Bootcamp.\nJul. 29 - Ago. 16\nComo consultora de datos, realizaremos un análisis exhaustivo del mercado estadounidense para un cliente dentro del conglomerado de empresarios gastronómicos y afines. Nuestro enfoque principal es realizar un análisis exhaustivo de restaurantes, utilizando datos de las plataformas Google Maps y Yelp que nos proporcionará información valiosa para los inversores, ayudandoles en la toma de decisiones estratégicas.\n· Diseñe soluciones en base a los datos presentados y/o lo pretendido por el usuario/cliente.\n· Desarrolle ingeniería de datos y datawarehouse limpiando y transformando los datos proporcionados.\n. Utilice machine learning para realizar un sistema de recomendación de restaurante y un sistema que recomienda una ciudad para invertir en un nuevo restaurante.\nHerramientas: Python, Pandas, Scikit-Learn, Power BI, Git. Base de Datos: BigQuery. Plataformas: Google Cloud Platform (GCP), Streamlit, Github\nEXPERIENCIA PROFESIONAL\nPracticante en Desarrollador Web Kunan SA.\n2022 Sep. 1 - 2022 Nov. 31\n· Realice un nuevo sitio web para los clientes de la empresa.\n· Use los servicios de CRM para el nuevo sitio web.\n· Implemente varias APIs del propio CRM al sitio web para mejorar la experiencia del usuario ..\nEDUCACIÓN PROFESIONAL\n· Data Science. Henry Bootcamp. 2024.\n· Técnico en Programación. I.P.E.T 57 Comodoro Martin Rivadavia. 2022.\nTECNOLOGÍAS:\n. Lenguajes de Programación: Python, SQL, NoSQL.\n. Machine Learning: Scikit-learn, TensorFlow, Keras, XGBoost\n· Bases de Datos: MySQL, PostgreSQL, BigQuery.\n. Plataformas en la Nube: Google Cloud Platform (GCP)\n· Visualización de Datos: Power BI, Matplotlib, Seaborn\n· Otros: Git, Docker\nIDIOMAS\n· Español: Nativo.\n· Inglés B1 - Intermedio.",
+  "score": 36.0,
+  "candidateName": "Jesus Yair Juarez",
+  "analysis": "A. Años de experiencia total: La experiencia laboral en prácticas y proyectos académicos suman aproximadamente 1 año y 7 meses, lo que es menos de 2 años, por lo tanto 0%. B. Años de experiencia en Modelos Predictivos: Se menciona el uso de machine learning y herramientas como Scikit-Learn, TensorFlow, Keras, XGBoost, en proyectos académicos y en la certificación, lo que indica experiencia en modelos predictivos de aproximadamente 1 año y 7 meses, pero no se especifica claramente la duración exacta, por lo que se asigna 30%. C. Años de experiencia en MLops: No se menciona experiencia específica en MLOps, por lo que 0%. D. Años de experiencia en la nube (AZURE, AWS, GCP): Se indica experiencia en Google Cloud Platform (GCP) y en arquitectura de datos, con certificación en Data Science y uso en proyectos, lo que sugiere al menos 1 año y 7 meses en GCP, por lo que se asigna 75%. E. Años de experiencia en bases de datos estructuradas: Se menciona experiencia con BigQuery, MySQL, PostgreSQL, lo que indica al menos 1 año y 7 meses en bases de datos estructuradas, por lo que se asigna 75%. F. Años de experiencia en análisis de datos con Python: Se usa Python en proyectos académicos y en análisis de datos, con aproximadamente 1 año y 7 meses de experiencia, por lo que se asigna 75%. G. Años de experiencia en framework de procesamiento de datos Spark: No se menciona Spark, por lo que 0%."
+}
+Response : Status=200, Body={
+  "message": "Resumen para f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2 guardado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:40:25
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2",
+  "errorMessage": null
+}
+Response : Status=200, Body={
+  "message": "Estado para f99f4ad9-c2e1-45a7-b95e-7bdab7003ce2 actualizado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:52:12
+Endpoint : /Account
+Method   : POST
+Received : {
+  "username": "testuser",
+  "password": "testpassword",
+  "role": "testrole",
+  "userApplication": "testapp"
+}
+Response : Status=200, Body=este-es-un-token-falso-para-pruebas-locales
+
+##################################################
+Timestamp: 2025-04-16 16:52:12
+Endpoint : /Resumen/1b47ee42-73b7-42a9-885c-2c9e76151c33
+Method   : GET
+Received : {
+  "rank_id": "1b47ee42-73b7-42a9-885c-2c9e76151c33"
+}
+Response : Status=200, Body={
+  "profileDescription": "Data Scientist",
+  "variablesContent": "\nA. Años de experiencia total.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nB. Años de experiencia en Modelos Predictivos.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nC. Años de experiencia en MLops.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\nD. Años de experiencia en la nube (AZURE, AWS, GCP)\n- Si tiene experiencia en Azure, GCP y AWS: asígnale 100%\n- Si tiene experiencia en Azure y AWS: asígnale 80%\n- Si solo tiene experiencia en Azure: asígnale 50%\n- Si no tiene experiencia en Azure: asígnale 0%\nE. Años de experiencia en bases de datos estructuradas.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nF. Años de experiencia en análisis de datos con Python.\n- 5 o más años: asígnale 100%\n- 4 años: asígnale 75%\n- 3 años: asígnale 30%\n- Menos de 2 años: asígnale 0%\nG. Años de experiencia en framework de procesamiento de datos Spark.\n- 3 o más años: asígnale 100%\n- 2 años: asígnale 75%\n- 1 año: asígnale 45%\n- Menos de 1 año: asígnale 0%\n"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:52:17
+Endpoint : /Resumen/AddScores
+Method   : POST
+Received : {
+  "candidateId": "35755298-1834-4823-b0f9-c5ccba1b6618",
+  "scores": {
+    "A": 100,
+    "B": 30,
+    "C": 100,
+    "D": 100,
+    "E": 75,
+    "F": 75,
+    "G": 75
+  }
+}
+Response : Status=201, Body={
+  "message": "Scores para 35755298-1834-4823-b0f9-c5ccba1b6618 recibidos (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:52:17
+Endpoint : /Resumen/Save
+Method   : POST
+Received : {
+  "candidateId": "35755298-1834-4823-b0f9-c5ccba1b6618",
+  "transcription": "PERFIL PROFESIONAL\nProfesional apasionado por los datos con 8 años de experiencia en proyectos de Analitica avanzada en los sectores de Banca, Retail, Turismo, Minería y Energía.\nMEDIOS DE CONTACTO\n+51 954451010\nmbalcazar1781@gmail.com\nhttps://www.linkedin.com/in/migue l-balcazar-carmelo-b56036115/\nLima, Perú\nHABILIDADES\nProgramación Python - Scala - SQL\nData\nBig Data - Data Warehouse - Data Integration - Data Pipelines - Data\nModeling - Data Visualization - Data Analysis\nCloud\nAzure - Google - AWS\nCERTIFICACIONES\nDP-203 Azure Data Engineer Associate DP-900 Azure Data Fundamentals\nMiguel Balcazar Carmelo Data Engineer\nEXPERIENCIA LABORAL\nData Engineer\n2021 - Presente\nArkano Software\n· Desarrollo, gestión y administración de Power BI.\n· Optimización y mantenimiento de ETL en Azure SQL.\n· Migración de reportes de Qlikview a Power BI gestionado en Azure DevOps.\n· Desarrollo, optimización y migración de pipelines en Azure Data Factory.\n. Implementación de pipelines con ADLS, Logic App, Azure Function, Azure Files, HTTP, Azure SQL y Teradata.\n· Desarrollo y mantenimiento de notebooks en Azure Databricks y Synapse Analytics.\n· Desarrollo de pipelines y notebooks con Microsoft Fabric.\n· Automatización de notebooks en Azure Batch.\n· CI/CD en Azure DevOps.\nIngeniero de Data y Analytics 2016 - 2021\nMDP Consulting\n· Análisis y levantamiento de información.\n· Integración de datos.\n· Análisis, optimización y desarrollo de queries.\n· Relevamiento funcional con los dueños del negocio.\n· Relevamiento técnico de datos.\n· Compresión de los datos.\n· Calidad de los datos.\n· Disponibilidad de datos.\n· Ingesta e integración de datos en Azure.\n· Ingesta e integración de datos en AWS.\n· Visualización de datos con Tableau y Power BI.\n· Elaboración de arquitectura cloud/on-premise.\n· Integración continua.\nPracticante Pre-Profesional 2015 - 2016\nGMD\n· Elaboración de queries, funciones y procedimientos almacenados, triggers en PL/SQL.\n· Elaboración y análisis de reportes para facturación y Ocupabilidad de AO-GMD.\n· Levantamiento de requerimientos con usuarios finales.\n· Análisis de requerimientos funcionales.\n· Administración y mantenimiento en JIRA.\nHISTORIAL ACADEMICO\nUniversidad Tecnológica del Perú Bachiller en Ingeniería de Sistemas\nDMC Consulting\nDiplomado Business Intelligence",
+  "score": 79.29,
+  "candidateName": "Miguel Balcazar Carmelo",
+  "analysis": "A: Tiene 8 años de experiencia laboral en proyectos relacionados con datos, desde 2015 hasta la actualidad, lo que equivale a 10 años hasta 2025-04-16, por lo que se le asigna 100%. B: Su experiencia en análisis y desarrollo de pipelines, notebooks y migraciones en Azure Data Factory, Azure Databricks y Synapse Analytics indica experiencia en modelos predictivos, pero no se especifica claramente la duración en estos roles, por lo que se asigna 30%. C: Tiene experiencia en Azure Data Factory, Azure Batch, Azure Databricks y Synapse Analytics, todos relacionados con MLops, con al menos 3 años en estos, por lo que se le asigna 100%. D: Tiene experiencia en Azure, Google y AWS, mencionados explícitamente en habilidades y en la experiencia laboral, por lo que se le asigna 100%. E: Su experiencia en integración, ingesta, calidad y análisis de datos en Azure y AWS indica experiencia en bases de datos estructuradas, pero no se especifica claramente la duración en años, por lo que se asigna 75%. F: Tiene experiencia en programación en Python y en visualización de datos con Power BI y Tableau, además de notebooks en Azure Databricks, lo que indica experiencia en análisis de datos con Python, asignándole 75%. G: Tiene experiencia en notebooks en Azure Databricks, que utiliza Spark, por lo que se le asigna 75%."
+}
+Response : Status=200, Body={
+  "message": "Resumen para 35755298-1834-4823-b0f9-c5ccba1b6618 guardado (simulado)"
+}
+
+##################################################
+Timestamp: 2025-04-16 16:52:17
+Endpoint : /Resumen
+Method   : PUT
+Received : {
+  "candidateId": "35755298-1834-4823-b0f9-c5ccba1b6618",
+  "errorMessage": null
+}
+Response : Status=200, Body={
+  "message": "Estado para 35755298-1834-4823-b0f9-c5ccba1b6618 actualizado (simulado)"
+}

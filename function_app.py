@@ -289,7 +289,7 @@ def _initialize_adapters(kv_uri: str) -> Tuple[DocumentIntelligenceAdapter, Azur
 # --- Trigger Principal del Blob ---
 @app.blob_trigger(
     arg_name="inputblob",
-    path=f"{CANDIDATES_CONTAINER}/{{name}}",
+    path="candidates/{name}",
     connection=CONNECTION_STRING_ENV_VAR,
 )
 def process_candidate_cv(inputblob: func.InputStream):

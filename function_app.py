@@ -15,19 +15,12 @@ try:
         AzureOpenAIAdapter, OpenAIError
     )
     from src.infrastructure.api_rest.api_rest_adapter import RestApiAdapter
-    from src.infrastructure.embedding.embedding_generator import (
-        EmbeddingGenerator, APIError as EmbeddingAPIError
-    )
-    from src.infrastructure.aisearch.azure_aisearch_adapter import (
-        AzureAISearchAdapter, AISearchError
-    )
     from src.domain.exceptions import APIError, KeyVaultError, SecretNotFoundError, AuthenticationError, JSONValidationError
-    from src.infrastructure.key_vault.key_vault_client import KeyVaultClient # Asumiendo que usas esto
+    from src.infrastructure.key_vault.key_vault_client import KeyVaultClient
     from src.shared.prompt_system import prompt_system
     from src.shared.validate_process_json import extract_and_validate_cv_data_from_json
     from src.shared.promedio_scores import calculate_average_score_from_dict
     from src.shared.extract_values import get_id_candidate, get_id_rank
-    from src.shared.sanitize_string import sanitize_for_id, format_text_for_embedding
 except ImportError as e:
     logging.critical(f"CRÍTICO: Falló la importación de módulos: {e}")
     # Define clases dummy para que el resto del código no falle en el import
@@ -37,10 +30,6 @@ except ImportError as e:
     class AzureOpenAIAdapter: pass
     class OpenAIError(Exception): pass
     class RestApiAdapter: pass
-    class EmbeddingGenerator: pass
-    class EmbeddingAPIError(Exception): pass
-    class AzureAISearchAdapter: pass
-    class AISearchError(Exception): pass
     class APIError(Exception): pass
     class AuthenticationError(APIError): pass
     class KeyVaultError(Exception): pass
@@ -49,8 +38,6 @@ except ImportError as e:
     class KeyVaultClient: pass
     prompt_system = lambda *args, **kwargs: ""
     extract_and_validate_cv_data_from_json = lambda *args: (None, None, None)
-    sanitize_for_id = lambda t: "sanitized-id"
-    format_text_for_embedding = lambda *args: "formatted text"
     calculate_average_score_from_dict = lambda *args: "0.0"
     get_id_candidate = lambda fn: "c1" if "c1" in fn else ""
     get_id_rank = lambda fn: "r1" if "r1" in fn else ""
@@ -67,6 +54,7 @@ SECRET_NAMES = {
     "openai_endpoint": "OpenaiEndpoint",
     "openai_api_version": "OpenaiApiVersion",
     "openai_model": "OpenaiModel",
+    "openai_deployment": "OpenaiDeployment",
     "docintel_api_key": "DocIntelApiKey",
     "docintel_endpoint": "DocIntelEndpoint",
     "rest_api_username": "RestApiUsername",
@@ -74,11 +62,6 @@ SECRET_NAMES = {
     "rest_api_role": "RestApiRole",
     "rest_api_user_app": "RestApiUserApplication",
     "rest_api_base_url": "RestApiBaseUrl",
-    "embedding_api_key": "EmbeddingApiKey",
-    "embedding_endpoint": "EmbeddingEndpoint",
-    "aisearch_api_key": "AISearchApiKey",
-    "aisearch_endpoint": "AISearchEndpoint",
-    "aisearch_index_name": "AISearchIndexName"
 }
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
@@ -168,46 +151,6 @@ def _handle_processing_error(
     """Mueve el blob a error, crea JSON, actualiza API y borra el original."""
     logging.error(f"{file_name_log_prefix} Error Crítico: {error_reason}. Iniciando manejo de error...")
 
-    # error_blob_name = original_blob_name
-    # error_json_name = os.path.splitext(original_blob_name)[0] + ".json"
-    # source_blob_client = blob_service_client.get_blob_client(container=original_container, blob=original_blob_name)
-    # error_file_blob_client = _get_blob_client(blob_service_client, MANUAL_ERROR_CONTAINER, error_blob_name)
-    # error_json_blob_client = _get_blob_client(blob_service_client, MANUAL_ERROR_CONTAINER, error_json_name)
-
-    # 1. Copiar blob original a error
-    # try:
-    #     if source_blob_client.exists():
-    #         logging.info(f"{file_name_log_prefix} Copiando blob a '{MANUAL_ERROR_CONTAINER}/{error_blob_name}'...")
-    #         copy_poller = error_file_blob_client.start_copy_from_url(source_blob_client.url)
-    #         copy_poller.wait() # Esperar a que termine la copia
-    #         status = copy_poller.status()
-    #         if status == 'success':
-    #             logging.info(f"{file_name_log_prefix} Blob copiado a error exitosamente.")
-    #         else:
-    #              # Intentar obtener detalles del error de copia
-    #              properties = error_file_blob_client.get_blob_properties()
-    #              copy_status_desc = properties.copy.status_description
-    #              logging.error(f"{file_name_log_prefix} FALLO la copia del blob a error. Status: {status}. Desc: {copy_status_desc}")
-    #              # No continuar si la copia falla, el original se queda donde está
-    #              return # Salir de la función de manejo de errores temprano
-    #     else:
-    #         logging.warning(f"{file_name_log_prefix} Blob original no encontrado en '{original_container}/{original_blob_name}', no se puede copiar a error.")
-    #         # Puede que ya se haya movido/borrado, continuar con los otros pasos
-
-    # except Exception as e:
-    #     logging.error(f"{file_name_log_prefix} FALLO al intentar copiar blob a error: {e}", exc_info=True)
-    #     # No continuar si la copia falla
-
-    # 2. Crear archivo JSON de error
-    # try:
-    #     error_data = json.dumps({"error": error_reason})
-    #     logging.info(f"{file_name_log_prefix} Creando archivo JSON de error en '{MANUAL_ERROR_CONTAINER}/{error_json_name}'...")
-    #     error_json_blob_client.upload_blob(error_data, overwrite=True, content_settings=ContentSettings(content_type="application/json"))
-    #     logging.info(f"{file_name_log_prefix} Archivo JSON de error creado.")
-    # except Exception as e:
-    #     logging.error(f"{file_name_log_prefix} FALLO al crear archivo JSON de error: {e}", exc_info=True)
-
-    # 3. Actualizar API REST (si es posible)
     if rest_api_adapter and candidate_id:
         try:
             logging.info(f"{file_name_log_prefix} Intentando actualizar estado de error en API para candidate_id: {candidate_id}...")
@@ -220,17 +163,6 @@ def _handle_processing_error(
     else:
          logging.warning(f"{file_name_log_prefix} No se pudo actualizar API: candidate_id no disponible.")
 
-
-    # 4. Borrar blob original (SOLO SI LA COPIA FUE EXITOSA o si el original no existía)
-    # Si la copia falló, el blob original debe permanecer para reintentar/investigar
-    # if 'copy_poller' in locals() and copy_poller.status() == 'success':
-    #      _delete_blob_if_exists(source_blob_client, f"original ({original_container}/{original_blob_name}) después de copiar a error")
-    # elif 'copy_poller' not in locals() : # Si el blob original no existía
-    #      logging.info(f"{file_name_log_prefix} Blob original no existía, no se requiere borrado.")
-    # else: # Si la copia falló
-    #      logging.warning(f"{file_name_log_prefix} La copia a error falló, NO se borrará el blob original: {original_container}/{original_blob_name}")
-
-    #BORRA EL BLOB ORIGINAL
     source_blob_client = blob_service_client.get_blob_client(container=original_container, blob=original_blob_name)
     _delete_blob_if_exists(source_blob_client, f"original ({original_container}/{original_blob_name}) después de copiar a error")
 
@@ -307,7 +239,7 @@ def _save_intermediate_result_and_cleanup(
     _delete_blob_if_exists(source_blob_client, f"original ({original_container}/{original_blob_name}) después de guardar resultado intermedio")
 
 
-def _initialize_adapters(kv_uri: str) -> Tuple[DocumentIntelligenceAdapter, AzureOpenAIAdapter, RestApiAdapter, EmbeddingGenerator, AzureAISearchAdapter]:
+def _initialize_adapters(kv_uri: str) -> Tuple[DocumentIntelligenceAdapter, AzureOpenAIAdapter, RestApiAdapter]:
     """Inicializa todos los adaptadores obteniendo secretos de Key Vault."""
     logging.info("Inicializando adaptadores usando Key Vault: %s", kv_uri)
     if not kv_uri:
@@ -339,22 +271,9 @@ def _initialize_adapters(kv_uri: str) -> Tuple[DocumentIntelligenceAdapter, Azur
             user_app=secrets["rest_api_user_app"],
             base_url=secrets["rest_api_base_url"],
         )
-        # --- Inicialización de adaptadores de Embedding y AI Search ---
-        # Asegúrate que los nombres de secretos y parámetros coincidan
-        embedding_generator = EmbeddingGenerator(
-             api_key=secrets.get("embedding_api_key"), # Usar .get() si son opcionales
-             endpoint=secrets.get("embedding_endpoint")
-             # ... otros parámetros si son necesarios
-        )
-        ai_search_adapter = AzureAISearchAdapter(
-            endpoint=secrets.get("aisearch_endpoint"),
-            api_key=secrets.get("aisearch_api_key"),
-            index_name=secrets.get("aisearch_index_name")
-            # ... otros parámetros si son necesarios
-        )
 
         logging.info("Adaptadores inicializados exitosamente.")
-        return doc_intel_adapter, openai_adapter, rest_api_adapter, embedding_generator, ai_search_adapter
+        return doc_intel_adapter, openai_adapter, rest_api_adapter
 
     except (SecretNotFoundError, KeyVaultError) as e:
         logging.critical(f"CRÍTICO: Falló la obtención de secretos de Key Vault: {e}", exc_info=True)
@@ -415,8 +334,6 @@ def process_candidate_cv(inputblob: func.InputStream):
     doc_intel_adapter: Optional[DocumentIntelligenceAdapter] = None
     openai_adapter: Optional[AzureOpenAIAdapter] = None
     rest_api_adapter: Optional[RestApiAdapter] = None
-    embedding_generator: Optional[EmbeddingGenerator] = None
-    ai_search_adapter: Optional[AzureAISearchAdapter] = None
     resumen_data: Optional[dict] = None
     extracted_text: Optional[str] = None
     analysis_result_str: Optional[str] = None # Guardar el JSON crudo de OpenAI
@@ -452,8 +369,6 @@ def process_candidate_cv(inputblob: func.InputStream):
             doc_intel_adapter = DocumentIntelligenceAdapter()
             openai_adapter = AzureOpenAIAdapter()
             rest_api_adapter = RestApiAdapter()
-            embedding_generator= EmbeddingGenerator()
-            ai_search_adapter = AzureAISearchAdapter()
             logging.info(f"[{file_name}] Adaptadores inicializados correctamente.")
         except ValueError as init_error:
             logging.error(f"[{file_name}] CRÍTICO: Falló la inicialización de un adaptador: {init_error}")
@@ -461,7 +376,6 @@ def process_candidate_cv(inputblob: func.InputStream):
 
         except ValueError as init_error:
             logging.error(f"[{file_name} CRIRICO]")
-
 
         # --- 2. Obtener Resumen de API Externa ---
         logging.info(f"{log_prefix} Paso 2: Llamando a get_resumen para RankID: {rank_id}...")
@@ -519,67 +433,6 @@ def process_candidate_cv(inputblob: func.InputStream):
              raise ValueError(f"Cálculo del promedio de scores falló para {file_name}.")
         logging.info(f"{log_prefix} Promedio calculado: {promedio_scores}")
 
-        # --- 7. Pasos de Azure AI Search y Embeddings ---
-        if embedding_generator and ai_search_adapter: # Solo si los adaptadores están configurados
-            logging.info(f"{log_prefix} Paso 7: Iniciando proceso de Embedding y AI Search...")
-
-            # 7a. Formatear Texto para Embedding
-            logging.info(f"{log_prefix} Paso 7a: Formateando texto para embedding...")
-            text_to_embed = format_text_for_embedding(
-                candidate_name=candidate_name,
-                profile_name=profile_description, # Usar el obtenido de get_resumen
-                cv_analysis=cv_analysis, # Usar el análisis validado
-                average_score=promedio_scores, # Usar el promedio calculado
-            )
-            if not text_to_embed:
-                 raise ValueError("Texto para generar embeddings está vacío.")
-
-            # 7b. Generar Embeddings
-            logging.info(f"{log_prefix} Paso 7b: Generando embeddings...")
-            embeddings, chunks = embedding_generator.generate_embeddings(text_to_embed)
-            if embeddings is None or chunks is None or len(embeddings) != len(chunks) or not embeddings:
-                raise EmbeddingAPIError("Generación de embeddings falló o devolvió resultado inconsistente/vacío.")
-            logging.info(f"{log_prefix} Embeddings generados para {len(chunks)} chunks.")
-
-            if cv_score is not None:
-                 scores_json_string = json.dumps(cv_score, separators=(',', ':'), ensure_ascii=False)
-            else:
-                 scores_json_string = None
-
-            # 7c. Preparar Documentos para AI Search
-            logging.info(f"{log_prefix} Paso 7c: Preparando documentos para AI Search...")
-            documents_to_upload = []
-            sanitized_profile = sanitize_for_id(profile_description)
-            sanitized_candidate = sanitize_for_id(candidate_name)
-            # ID base más robusto y sanitizado
-            base_id_prefix = sanitize_for_id(f"cv-{rank_id}-{candidate_id}-{sanitized_profile}-{sanitized_candidate}")
-
-            for i, chunk in enumerate(chunks):
-                # ID único y determinístico por chunk, sanitizado
-                doc_id = f"{base_id_prefix}-chunk{i}"
-                document = {
-                    "id": doc_id, # Debe ser único y cumplir requisitos de AI Search
-                    "content": chunk,
-                    "embedding": embeddings[i],
-                    "candidateId": candidate_id,
-                    "profileName": profile_description,
-                    "rankId": rank_id,
-                    "averageScore": float(promedio_scores),
-                    "sourceFile": file_name,
-                    "scores":scores_json_string
-                }
-                documents_to_upload.append(document)
-
-            # 7d. Subir Documentos a AI Search
-            logging.info(f"{log_prefix} Paso 7d: Subiendo {len(documents_to_upload)} documentos a AI Search...")
-            upload_success = ai_search_adapter.upload_documents(documents_to_upload)
-            if not upload_success:
-                raise AISearchError(f"Falló la subida de documentos a Azure AI Search para {file_name}.")
-            logging.info(f"{log_prefix} Documentos subidos/fusionados a AI Search exitosamente.")
-            logging.info(f"{log_prefix} Paso 7 (Embedding/AI Search) completado.")
-        else:
-             logging.warning(f"{log_prefix} Saltando pasos 7 (Embedding/AI Search): Adaptadores no inicializados o configurados.")
-
         # --- 8. Enviar Resultados a API REST Final ---
         logging.info(f"{log_prefix} Paso 8: Enviando resultados finales a la API REST...")
 
@@ -636,18 +489,12 @@ def process_candidate_cv(inputblob: func.InputStream):
 
 
     # --- Manejo de Errores Post-OpenAI ---
-    except (JSONValidationError, TypeError, # Errores validación/cálculo (TypeError podría ser del promedio)
-             EmbeddingAPIError, AISearchError, # Errores de Embedding/Search
-             APIError, AuthenticationError # Errores en APIs finales (add_scores, save, update)
+    except (JSONValidationError, TypeError, APIError, AuthenticationError
              ) as post_openai_error:
         failed_step = "UnknownPostOpenAI"
         # Determinar el paso específico si es posible
         if isinstance(post_openai_error, (JSONValidationError, TypeError, ValueError)): # ValueError podría ser del promedio o formato embedding
             failed_step = "ValidationOrCalculation"
-        elif isinstance(post_openai_error, EmbeddingAPIError):
-            failed_step = "EmbeddingGeneration"
-        elif isinstance(post_openai_error, AISearchError):
-            failed_step = "AISearchUpload"
         elif isinstance(post_openai_error, (APIError, AuthenticationError)):
             # Aquí podrías intentar ser más específico si tu adaptador API lanza errores distintos
             # por add_scores, save_resumen, update_candidate. Por ahora, genérico.
@@ -741,5 +588,3 @@ def process_candidate_cv(inputblob: func.InputStream):
 
 
         logging.info(f"{log_prefix} --- Finalizando procesamiento para: {blob_full_path} ---")
-
-# --- Fin del Archivo ---

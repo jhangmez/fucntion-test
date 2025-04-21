@@ -184,7 +184,7 @@ def _save_intermediate_result_and_cleanup(
     logging.warning(f"{file_name_log_prefix} Error post-OpenAI en paso '{failed_step}'. Guardando resultado intermedio...")
 
     result_filename = f"{rank_id}_{candidate_id}_partial_result_{failed_step}.json"
-    result_blob_client = _get_blob_client(blob_service_client, RESULTS_POST_OPENAI_CONTAINER, result_filename)
+    result_blob_client = _get_blob_client(blob_service_client, "resultados-post-openai", result_filename)
 
     # Combinar toda la información disponible en un solo JSON
     intermediate_data = {
@@ -290,7 +290,7 @@ def _initialize_adapters(kv_uri: str) -> Tuple[DocumentIntelligenceAdapter, Azur
 @app.blob_trigger(
     arg_name="inputblob",
     path="candidates/{name}",
-    connection=CONNECTION_STRING_ENV_VAR,
+    connection="AzureWebJobsStorage",
 )
 def process_candidate_cv(inputblob: func.InputStream):
     """

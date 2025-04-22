@@ -2,7 +2,7 @@ import requests
 import os # Para obtener variables si las tienes
 
 # --- Configuración ---
-function_url = "https://pruebas-iarc-jhan.azurewebsites.net/upload-cv"
+function_url = "http://localhost:7071/api/upload-cv"
 # Intenta obtener la llave desde variable de entorno o pégala directamente
 api_key = os.getenv("FUNC_IARC_UPLOAD_KEY")
 file_path = "./data/cvs/1b47ee42-73b7-42a9-885c-2c9e76151c33_35755298-1834-4823-b0f9-c5ccba1b6618.pdf"

@@ -5,7 +5,6 @@ from typing import Optional
 @dataclass(frozen=True)
 class ApiCredentials:
     """Representa las credenciales de acceso a la API REST (token y expiración)."""
-
     token: str
     expires_in: Optional[int] = None
 

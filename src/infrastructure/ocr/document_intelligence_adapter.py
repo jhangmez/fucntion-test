@@ -12,9 +12,7 @@ from azure.core.exceptions import (
     HttpResponseError,
     ClientAuthenticationError,
 )
-
 from src.domain.exceptions import (
-    FileProcessingError,
     DocumentIntelligenceError,
     NoContentExtractedError,
 )
@@ -157,7 +155,7 @@ class DocumentIntelligenceAdapter:
             endpoint=self.endpoint, credential=AzureKeyCredential(self.api_key)
         )
 
-    @_retry_on_service_error()  # Aplica el decorador
+    @_retry_on_service_error()
     def analyze_cv(self, file_stream: BinaryIO) -> str:
         """
         Extrae texto de un CV utilizando Document Intelligence.

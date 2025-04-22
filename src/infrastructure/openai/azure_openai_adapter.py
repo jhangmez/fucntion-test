@@ -177,11 +177,11 @@ class AzureOpenAIAdapter:
                 and completion.choices[0].message
                 and completion.choices[0].message.content
             ):
-                # Returns the content of the message as string
+                # Retorna el contenido como un mensaje (String)
                 return completion.choices[0].message.content
             else:
                 logging.warning("OpenAI no devolvió contenido en las opciones.")
-                # Raises a specific error instead of an empty string
+                # Genera un error específico en lugar de una cadena vacía
                 raise OpenAIError(
                     "OpenAI no devolvió opciones de finalización o contenido vacío."
                 )
@@ -192,10 +192,10 @@ class AzureOpenAIAdapter:
             # También lo volvemos a generar como OpenAIError para mantener la coherencia.
             # Verificamos si ya es un OpenAIError para evitar envolverlo dos veces.
             if isinstance(e, OpenAIError):
-                raise  # If it is already an OpenAIError (probably from the decorator), re-raise it
+                raise  # Si ya es un OpenAIError (probablemente del decorador), vuelva a generarlo.
             else:
                 logging.exception(
                     "Error durante la creación de la finalización o el progreso de OpenAI: %s", e
                 )
-                # Wraps other exceptions as OpenAIError
+                # Envuelve otras excepciones como OpenAIError
                 raise OpenAIError(f"Error en el proceso de finalización: {e}") from e

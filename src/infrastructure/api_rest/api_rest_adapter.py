@@ -1,5 +1,4 @@
 import os
-import time
 import logging
 import requests
 from typing import Dict, Optional
@@ -56,7 +55,7 @@ class RestApiAdapter(ApiRestRepositoryInterface):
         }
         try:
             response = requests.post(
-                url, headers=headers, json=data, verify=False
+                url, headers=headers, json=data, verify=True
             )
             response.raise_for_status()
 
@@ -90,7 +89,8 @@ class RestApiAdapter(ApiRestRepositoryInterface):
         data: dict = None,
         headers: dict = None,
         verify: bool = True,
-    ) -> dict:
+        expect_response_body: bool = True,
+    ) -> Optional[dict]:
         """Realiza una petición a la API, manejando la autenticación."""
 
         credentials = self.get_credentials()
@@ -107,50 +107,47 @@ class RestApiAdapter(ApiRestRepositoryInterface):
             response = requests.request(
                 method, url, params=params, json=data, headers=headers, verify=verify
             )
+            # Esto verifica el estado HTTP (2xx es éxito, otros lanzan excepción)
             response.raise_for_status()
-            return response.json()
+
+            # Si no esperamos cuerpo de respuesta O si la respuesta es 204 No Content (sin cuerpo)
+            if not expect_response_body or response.status_code == 204:
+                 logging.debug(f"Request to {url} succeeded with status {response.status_code}. No response body expected/processed.")
+                 return None
+
+            # Si esperamos cuerpo de respuesta Y hay contenido
+            if response.content:
+                 logging.debug(f"Request to {url} succeeded with status {response.status_code}. Processing response body.")
+                 return response.json() # Procesamos y devolvemos el diccionario
+            else:
+                 logging.warning(f"Request to {url} succeeded with status {response.status_code}, but no content was returned despite expecting a body.")
+                 return None
 
         except requests.exceptions.RequestException as e:
             logging.exception("Error during API request to %s: %s", url, e)
+            if isinstance(e, requests.exceptions.HTTPError) and e.response is not None:
+                logging.error("Response content on error: %s", e.response.text)
             raise APIError(f"API request failed: {e}") from e
 
-    def get(
-        self, endpoint: str, params: dict = None, headers: dict = None
-    ) -> dict:
+    def get(self, endpoint: str, params: dict = None, headers: dict = None, expect_response_body: bool = True) -> Optional[dict]:
         """Realiza una petición GET a la API."""
-        return self._make_request(
-            "GET", endpoint, params=params, headers=headers, verify=False
-        )
+        return self._make_request("GET", endpoint, params=params, headers=headers, verify=True, expect_response_body=expect_response_body)
 
-    def post(self, endpoint: str, data: dict, headers: dict = None) -> dict:
+    def post(self, endpoint: str, data: dict, headers: dict = None, expect_response_body: bool = True) -> Optional[dict]:
         """Realiza una petición POST a la API."""
-        return self._make_request("POST", endpoint, data=data, headers=headers)
+        return self._make_request("POST", endpoint, data=data, headers=headers, expect_response_body=expect_response_body)
 
-    def put(self, endpoint: str, data: dict, headers: dict = None) -> dict:
+    def put(self, endpoint: str, data: dict, headers: dict = None, expect_response_body: bool = True) -> Optional[dict]:
         """Realiza una petición PUT a la API."""
-        return self._make_request("PUT", endpoint, data=data, headers=headers)
+        return self._make_request("PUT", endpoint, data=data, headers=headers, expect_response_body=expect_response_body)
 
-    def patch(self, endpoint: str, data: dict, headers: dict = None) -> dict:
+    def patch(self, endpoint: str, data: dict, headers: dict = None, expect_response_body: bool = True) -> Optional[dict]:
         """Realiza una petición PATCH a la API."""
-        return self._make_request("PATCH", endpoint, data=data, headers=headers)
+        return self._make_request("PATCH", endpoint, data=data, headers=headers, expect_response_body=expect_response_body)
 
-    def delete(self, endpoint: str, headers: dict = None) -> dict:
+    def delete(self, endpoint: str, headers: dict = None, expect_response_body: bool = True) -> Optional[dict]:
         """Realiza una petición DELETE a la API."""
-        return self._make_request("DELETE", endpoint, headers=headers)
-
-    # -----------------------------------------------------------------------------------------------
-
-    def get_ranking_criteria(self, profile_id: str) -> dict:
-        """Obtiene los criterios de ranking para un perfil dado."""
-        #  GET /profiles/{profile_id}/criteria
-        endpoint = f"/profiles/{profile_id}/criteria"
-        return self.get(endpoint)
-
-    def update_cv_analysis(self, cv_id: str, analysis_data: dict) -> dict:
-        """Actualiza el análisis de un CV."""
-        #  PUT /cvs/{cv_id}/analysis
-        endpoint = f"/cvs/{cv_id}/analysis"
-        return self.put(endpoint, data=analysis_data)
+        return self._make_request("DELETE", endpoint, headers=headers, expect_response_body=expect_response_body)
 
     # -----------------------------------------------------------------------------------------------
     # --- /Profile ---
@@ -167,41 +164,45 @@ class RestApiAdapter(ApiRestRepositoryInterface):
         endpoint = f"/Resumen/{id}"
         return self.get(endpoint)
 
-    def add_scores(self, candidate_id: str, scores: Dict[str, float]) -> dict:
-        """Agrega puntuaciones a un candidato (POST /Resumen/AddScores)."""
+    def add_scores(self, candidate_id: str, scores: Dict[str, int]) -> None:
+        """Agrega puntuaciones a un candidato (POST /Resumen/AddScores).
+           No espera cuerpo de respuesta, solo éxito HTTP."""
         endpoint = "/Resumen/AddScores"
         data = {
             "candidateId": candidate_id,
             "scores": scores,
         }
-        return self.post(endpoint, data=data)
+        self.post(endpoint, data=data, expect_response_body=False)
 
     def save_resumen(
         self,
         candidate_id: str,
         transcription: str,
-        score: str,
+        score: float,
         candidate_name: str,
         analysis: str,
-    ) -> dict:
-        """Guarda un resumen (POST /Resumen/Save)."""
+    ) -> None:
+        """Guarda un resumen (POST /Resumen/Save).
+           No espera cuerpo de respuesta, solo éxito HTTP."""
         endpoint = "/Resumen/Save"
         data = {
             "candidateId": candidate_id,
             "transcription": transcription,
             "score": score,
-            "candidateName": candidate_name,
             "analysis": analysis,
+            "candidateName": candidate_name,
         }
-        return self.post(endpoint, data=data)
+        self.post(endpoint, data=data, expect_response_body=False)
+
 
     def update_candidate(
         self, candidate_id: str, error_message: Optional[str] = None
-    ) -> dict:
-        """Actualiza un candidato (PUT /Resumen)."""
+    ) -> None:
+        """Actualiza un candidato (PUT /Resumen).
+           No espera cuerpo de respuesta, solo éxito HTTP."""
         endpoint = "/Resumen"
         data = {
             "candidateId": candidate_id,
             "errorMessage": error_message,
         }
-        return self.put(endpoint, data=data)
+        self.put(endpoint, data=data, expect_response_body=False)

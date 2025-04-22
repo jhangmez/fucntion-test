@@ -295,7 +295,7 @@ def _initialize_adapters(kv_uri: str) -> Tuple[DocumentIntelligenceAdapter, Azur
 def process_candidate_cv(inputblob: func.InputStream):
     """
     Procesa un CV desde el contenedor 'candidates'.
-    Orden: IDs -> get_resumen -> DI -> OpenAI -> Validación/Cálculo -> [Embed/Search] -> API Final.
+    Orden: IDs -> get_resumen -> DI -> OpenAI -> Validación/Cálculo -> API Final.
     Maneja errores moviendo a 'error' o guardando resultados intermedios.
     """
     if not inputblob or not inputblob.name:
@@ -318,7 +318,6 @@ def process_candidate_cv(inputblob: func.InputStream):
         # Necesitarías inicializar blob_service_client antes si quieres moverlo.
         # Por ahora, solo retornamos.
         return
-
 
     logging.info(f"{log_prefix} --- Iniciando procesamiento para: {blob_full_path} (Tamaño: {inputblob.length} Bytes) ---")
 
@@ -360,7 +359,7 @@ def process_candidate_cv(inputblob: func.InputStream):
         # logging.info(f"{log_prefix} Paso 1: Inicializando adaptadores desde Key Vault...")
         # kv_uri = os.environ.get(KEY_VAULT_URI_ENV_VAR)
         # La excepción de _initialize_adapters detendrá la función si falla
-        # doc_intel_adapter, openai_adapter, rest_api_adapter, embedding_generator, ai_search_adapter = _initialize_adapters(kv_uri)
+        # doc_intel_adapter, openai_adapter, rest_api_adapter = _initialize_adapters(kv_uri)
         # logging.info(f"{log_prefix} Adaptadores inicializados.")
 
         # --- 1. Inicializar Adaptadores directamente desde env ---
@@ -493,7 +492,7 @@ def process_candidate_cv(inputblob: func.InputStream):
              ) as post_openai_error:
         failed_step = "UnknownPostOpenAI"
         # Determinar el paso específico si es posible
-        if isinstance(post_openai_error, (JSONValidationError, TypeError, ValueError)): # ValueError podría ser del promedio o formato embedding
+        if isinstance(post_openai_error, (JSONValidationError, TypeError, ValueError)): # ValueError podría ser del promedio
             failed_step = "ValidationOrCalculation"
         elif isinstance(post_openai_error, (APIError, AuthenticationError)):
             # Aquí podrías intentar ser más específico si tu adaptador API lanza errores distintos

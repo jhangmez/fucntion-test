@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 def prompt_system(
     profile: str, criterios: str, current_date: str = None
 ) -> str:

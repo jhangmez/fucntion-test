@@ -1,8 +1,5 @@
 import logging
-import re
-import string
-import json
-from typing import Dict, Any, Optional, List, Tuple  # List ya no es necesaria para el score
+from typing import Dict, Optional
 
 
 def calculate_average_score_from_dict(

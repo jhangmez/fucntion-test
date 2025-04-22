@@ -1,11 +1,9 @@
 import json
 import logging
-import string # Para obtener las letras mayúsculas A-Z
+import string
 from typing import Dict, Optional, Tuple
 
-# Conjunto de letras mayúsculas válidas para una búsqueda rápida (sin cambios)
 VALID_LETTERS = set(string.ascii_uppercase)
-
 
 def extract_and_validate_cv_data_from_json(
     json_string: str,
@@ -101,15 +99,9 @@ def extract_and_validate_cv_data_from_json(
                 f"El diccionario 'cvScore' con {len(validated_scores_dict)} claves ha sido validado exitosamente."
             )
         else:
-            logging.warning(
-                "El diccionario 'cvScore' contenía elementos inválidos y no será devuelto."
-            )
+            logging.warning("El diccionario 'cvScore' contenía elementos inválidos y no será devuelto.")
 
     # --- Procesamiento final de otros campos ---
-
-    # final_cv_score = str(raw_cv_score) if isinstance(raw_cv_score, str) else None
-    # if raw_cv_score is not None and final_cv_score is None:
-    #       logging.warning(f"'cvScore' no era un string (tipo: {type(raw_cv_score)}), se devuelve None.")
 
     final_analysis = str(cv_analysis) if isinstance(cv_analysis, str) else None
     if cv_analysis is not None and final_analysis is None:
@@ -123,5 +115,4 @@ def extract_and_validate_cv_data_from_json(
             f"'nameCandidate' no era un string (tipo: {type(candidate_name)}), se devuelve None."
         )
 
-    # --- Devolver los resultados ---
     return validated_scores_dict, final_analysis, final_name

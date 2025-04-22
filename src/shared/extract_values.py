@@ -32,19 +32,17 @@ def get_file_extension(file_path: str) -> str:
         return parts[-1]
     return ""
 
-
-def get_id_rank(file_path: str) -> str:
-    file_name = get_file_name_without_extension(file_path)
-    parts = file_name.split("_")
+def get_id_rank(file_path: str) ->str:
+    file_name= get_file_name_without_extension(file_path)
+    parts=file_name.split("_")
     if len(parts) > 0:
         id_rank_part = parts[0]
         return id_rank_part[:]
     return ""
 
-
-def get_id_candidate(file_path: str) -> str:
+def get_id_candidate(file_path: str) ->str:
     file_name = get_file_name_without_extension(file_path)
-    parts = file_name.split("_")
+    parts= file_name.split("_")
     if len(parts) > 1:
         id_candidate_part = parts[1]
         return id_candidate_part[:]

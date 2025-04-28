@@ -10,9 +10,3 @@ azure-functions
 azure-storage-blob
 azure-identity
 azure-keyvault-secrets
-langchain
-tiktoken
-azure-search-documents
-
-# Apartir desde aqui a abajo son dependencias que son utilizadas para pruebas, las cuales no deben ser instaladas en produccion.
-flask

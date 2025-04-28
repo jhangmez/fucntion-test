@@ -41,6 +41,7 @@ except ImportError as e:
     calculate_average_score_from_dict = lambda *args: "0.0"
     get_id_candidate = lambda fn: "c1" if "c1" in fn else ""
     get_id_rank = lambda fn: "r1" if "r1" in fn else ""
+
 # --- Constantes ---
 CONNECTION_STRING_ENV_VAR = "AzureWebJobsStorage"
 CANDIDATES_CONTAINER = "candidates"
@@ -65,46 +66,6 @@ SECRET_NAMES = {
 }
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
-
-# --- Trigger HTTP para subir CV ---
-@app.route(route="upload-cv", methods=[func.HttpMethod.POST], auth_level=func.AuthLevel.FUNCTION)
-def upload_cv_http_trigger(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info("Función HTTP upload_cv_http_trigger procesando solicitud.")
-    try:
-        file_content = None
-        filename = None
-        content_type = "application/octet-stream"
-
-        file_from_form = req.files.get("file")
-        if file_from_form:
-            filename = os.path.basename(file_from_form.filename)
-            file_content = file_from_form.read()
-            content_type = file_from_form.mimetype or content_type
-            logging.info(f"Recibido archivo '{filename}' vía form-data, tipo: {content_type}")
-        else:
-            file_content = req.get_body()
-            if not file_content: return func.HttpResponse("...", status_code=400)
-            filename = os.path.basename(req.headers.get("X-Filename", "uploaded_cv.pdf"))
-            content_type = req.headers.get("Content-Type", content_type)
-            logging.info(f"Recibido archivo '{filename}' vía body, tipo: {content_type}")
-
-        if not filename: filename = "default_cv.pdf"
-
-        connection_string = os.environ[CONNECTION_STRING_ENV_VAR]
-        blob_service_client = BlobServiceClient.from_connection_string(connection_string)
-        blob_client = blob_service_client.get_blob_client(container=CANDIDATES_CONTAINER, blob=filename)
-        blob_content_settings = ContentSettings(content_type=content_type)
-        blob_client.upload_blob(file_content, overwrite=True, content_settings=blob_content_settings)
-        logging.info(f"Archivo '{filename}' subido a '{CANDIDATES_CONTAINER}'.")
-        return func.HttpResponse(f"Archivo '{filename}' subido.", status_code=200)
-
-    except KeyError:
-        logging.exception(f"Variable de entorno '{CONNECTION_STRING_ENV_VAR}' no encontrada.")
-        return func.HttpResponse("Error de configuración del servidor.", status_code=500)
-    except Exception as e:
-        logging.exception(f"Error al subir el archivo al blob: {e}")
-        return func.HttpResponse(f"Error al guardar el archivo: {e}", status_code=500)
-
 
 # --- Funciones Auxiliares para Manejo de Errores ---
 
@@ -256,7 +217,8 @@ def _initialize_adapters(kv_uri: str) -> Tuple[DocumentIntelligenceAdapter, Azur
 
         # Instanciar adaptadores (Asegúrate que los constructores acepten estos nombres de parámetros)
         doc_intel_adapter = DocumentIntelligenceAdapter(
-            api_key=secrets["docintel_api_key"], endpoint=secrets["docintel_endpoint"]
+            api_key=secrets["docintel_api_key"],
+            endpoint=secrets["docintel_endpoint"]
         )
         openai_adapter = AzureOpenAIAdapter(
             api_key=secrets["openai_api_key"],

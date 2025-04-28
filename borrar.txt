@@ -1,0 +1,1791 @@
+requerements.txt
+
+# DO NOT include azure-functions-worker in this file
+# The Python Worker is managed by Azure Functions platform
+# Manually managing azure-functions-worker may cause unexpected issues
+
+openai
+python-dotenv
+azure-core
+azure-ai-documentintelligence
+azure-functions
+azure-storage-blob
+azure-identity
+azure-keyvault-secrets
+
+
+
+# function_app.py
+import logging
+import os
+import json
+from typing import Optional, Tuple
+
+import azure.functions as func
+from azure.storage.blob import BlobServiceClient, ContentSettings, BlobClient
+from azure.core.exceptions import ResourceNotFoundError, HttpResponseError
+
+try:
+    from src.infrastructure.ocr.document_intelligence_adapter import (
+        DocumentIntelligenceAdapter, DocumentIntelligenceError, NoContentExtractedError
+    )
+    from src.infrastructure.openai.azure_openai_adapter import (
+        AzureOpenAIAdapter, OpenAIError
+    )
+    from src.infrastructure.api_rest.api_rest_adapter import RestApiAdapter
+    from src.domain.exceptions import APIError, KeyVaultError, SecretNotFoundError, AuthenticationError, JSONValidationError
+    from src.infrastructure.key_vault.key_vault_client import KeyVaultClient
+    from src.shared.prompt_system import prompt_system
+    from src.shared.validate_process_json import extract_and_validate_cv_data_from_json
+    from src.shared.promedio_scores import calculate_average_score_from_dict
+    from src.shared.extract_values import get_id_candidate, get_id_rank
+    DEPENDENCIES_LOADED = True
+except ImportError as e:
+    logging.critical(f"CRÍTICO: Falló la importación de módulos: {e}")
+    # Define clases dummy para que el resto del código no falle en el import
+    class DocumentIntelligenceAdapter: pass
+    class DocumentIntelligenceError(Exception): pass
+    class NoContentExtractedError(DocumentIntelligenceError): pass
+    class AzureOpenAIAdapter: pass
+    class OpenAIError(Exception): pass
+    class RestApiAdapter: pass
+    class APIError(Exception): pass
+    class AuthenticationError(APIError): pass
+    class KeyVaultError(Exception): pass
+    class SecretNotFoundError(KeyVaultError): pass
+    class JSONValidationError(Exception): pass
+    class KeyVaultClient: pass
+    prompt_system = lambda *args, **kwargs: ""
+    extract_and_validate_cv_data_from_json = lambda *args: (None, None, None)
+    calculate_average_score_from_dict = lambda *args: "0.0"
+    get_id_candidate = lambda fn: "c1" if "c1" in fn else ""
+    get_id_rank = lambda fn: "r1" if "r1" in fn else ""
+    DEPENDENCIES_LOADED = False
+
+# --- Constantes ---
+CONNECTION_STRING_ENV_VAR = "AzureWebJobsStorage"
+KEY_VAULT_URI_ENV_VAR = "Vault"
+
+CANDIDATES_CONTAINER = "candidates"
+RESULTS_POST_OPENAI_CONTAINER = "resultados-post-openai"
+MANUAL_ERROR_CONTAINER = "error"
+
+# Identificador para este proceso/función
+FUNCTION_PROCESS_TYPE = "FUNCTION-IARC"
+
+# --- Nombres Secretos Key Vault ---
+SECRET_NAMES = {
+    "openai_endpoint": "OpenAI--URL",
+    "openai_api_version": "OpenAI--ApiVersion",
+    "openai_model": "OpenAI--Model",
+    "openai_deployment": "OpenAI--Deployment",
+    "client_id": "AzureAd--ClientId",
+    "client_secret": "AzureAd--ClientSecret",
+    "tenant_id": "AzureAd--TenantId",
+    "docintel_api_key": "DocumentIntelligence--ApiKey",
+    "docintel_endpoint": "DocumentIntelligence--URL",
+    "rest_api_username": "Jwt--User",
+    "rest_api_password": "Jwt--Password",
+}
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
+
+# --- Funciones Auxiliares para Manejo de Errores ---
+
+def _get_blob_client(blob_service_client: BlobServiceClient, container_name: str, blob_name: str) -> BlobClient:
+    """Obtiene un cliente de blob y crea el contenedor si no existe."""
+    try:
+        container_client = blob_service_client.get_container_client(container_name)
+        if not container_client.exists():
+            logging.warning(f"Contenedor '{container_name}' no encontrado, intentando crear.")
+            try:
+                 container_client.create_container()
+                 logging.info(f"Contenedor '{container_name}' creado.")
+            except HttpResponseError as e:
+                 if e.status_code == 409: # Conflict - ya existe (carrera condición)
+                     logging.info(f"Contenedor '{container_name}' ya existe (detectado después del check).")
+                 else:
+                    logging.error(f"Error al crear contenedor '{container_name}': {e}")
+                    raise # Relanzar si no es un conflicto esperado
+    except Exception as e:
+        logging.error(f"Error inesperado al obtener/crear cliente de contenedor '{container_name}': {e}")
+        raise
+    return container_client.get_blob_client(blob_name)
+
+def _delete_blob_if_exists(blob_client: BlobClient, blob_description: str):
+    """Intenta borrar un blob, logueando si no existe o si falla."""
+    try:
+        blob_client.delete_blob(delete_snapshots="include")
+        logging.info(f"Blob borrado exitosamente: {blob_description}")
+    except ResourceNotFoundError:
+        logging.warning(f"No se encontró el blob para borrar (puede que ya se haya movido/borrado): {blob_description}")
+    except Exception as e:
+        logging.error(f"FALLO al borrar el blob {blob_description}: {e}", exc_info=True)
+
+def _handle_processing_error(
+    blob_service_client: BlobServiceClient,
+    original_container: str,
+    original_blob_name: str,
+    error_reason: str,
+    file_name_log_prefix: str,
+    rest_api_adapter: Optional[RestApiAdapter] = None,
+    candidate_id: Optional[str] = None,
+):
+    """Mueve el blob a error, crea JSON, actualiza API y borra el original."""
+    logging.error(f"{file_name_log_prefix} Error Crítico: {error_reason}. Iniciando manejo de error...")
+
+    if rest_api_adapter and candidate_id:
+        try:
+            logging.info(f"{file_name_log_prefix} Intentando actualizar estado de error en API para candidate_id: {candidate_id}...")
+            rest_api_adapter.update_candidate(candidate_id=candidate_id, error_message=error_reason[:1000])
+            logging.info(f"{file_name_log_prefix} Estado de error actualizado en API.")
+        except Exception as api_err:
+            logging.error(f"{file_name_log_prefix} FALLO al actualizar estado de error en API: {api_err}", exc_info=True)
+    elif candidate_id:
+         logging.warning(f"{file_name_log_prefix} No se pudo actualizar API: rest_api_adapter no disponible.")
+    else:
+         logging.warning(f"{file_name_log_prefix} No se pudo actualizar API: candidate_id no disponible.")
+
+    source_blob_client = blob_service_client.get_blob_client(container=original_container, blob=original_blob_name)
+    _delete_blob_if_exists(source_blob_client, f"original ({original_container}/{original_blob_name}) después de copiar a error")
+
+def _save_intermediate_result_and_cleanup(
+    blob_service_client: BlobServiceClient,
+    original_container: str,
+    original_blob_name: str,
+    rank_id: str,
+    candidate_id: str,
+    openai_result_str: str,
+    get_resumen_result: dict,
+    transcription: str,
+    failed_step: str,
+    error_details: str,
+    file_name_log_prefix: str,
+    rest_api_adapter: Optional[RestApiAdapter] = None,
+):
+    """Guarda datos intermedios en 'resultados-post-openai' y borra el original."""
+    logging.warning(f"{file_name_log_prefix} Error post-OpenAI en paso '{failed_step}'. Guardando resultado intermedio...")
+
+    result_filename = f"{rank_id}_{candidate_id}_partial_result_{failed_step}.json"
+    result_blob_client = _get_blob_client(blob_service_client, "resultados-post-openai", result_filename)
+
+    # Combinar toda la información disponible en un solo JSON
+    intermediate_data = {
+        "rank_id": rank_id,
+        "candidate_id": candidate_id,
+        "get_resumen_result": get_resumen_result,
+        "document_intelligence_transcription": transcription,
+        "azure_openai_raw_result": openai_result_str, # Guardar el string crudo
+        "failure_info": {
+            "failed_step": failed_step,
+            "error_details": error_details
+        }
+    }
+    intermediate_json = json.dumps(intermediate_data, indent=2, ensure_ascii=False)
+
+    # Metadata para búsqueda rápida (opcional pero útil)
+    metadata = {
+        "original_filename": original_blob_name,
+        "rank_id": rank_id,
+        "candidate_id": candidate_id,
+        "failed_step": failed_step,
+        "error_details_summary": error_details[:250], # Resumen corto para metadata
+    }
+    content_settings = ContentSettings(content_type="application/json", metadata=metadata)
+
+    # 1. Subir el resultado JSON intermedio
+    try:
+        logging.info(f"{file_name_log_prefix} Guardando resultado intermedio en '{RESULTS_POST_OPENAI_CONTAINER}/{result_filename}'...")
+        result_blob_client.upload_blob(intermediate_json, overwrite=True, content_settings=content_settings)
+        logging.info(f"{file_name_log_prefix} Resultado intermedio guardado exitosamente.")
+    except Exception as e:
+        # No detener el flujo principal si falla el guardado del error, solo loguear críticamente
+        logging.exception(
+            f"{file_name_log_prefix} CRITICAL ERROR al intentar guardar resultado intermedio en '{RESULTS_POST_OPENAI_CONTAINER}': {e}"
+        )
+        # NO BORRAR EL ORIGINAL SI FALLA EL GUARDADO DEL INTERMEDIO
+        return # Salir temprano
+
+    # 2. Actualizar API REST (si es posible)
+    if rest_api_adapter and candidate_id:
+        try:
+            logging.info(f"{file_name_log_prefix} Intentando actualizar estado de error (post-OpenAI) en API para candidate_id: {candidate_id}...")
+            rest_api_adapter.update_candidate(candidate_id=candidate_id, error_message=f"Error en {failed_step}: {error_details}"[:1000])
+            logging.info(f"{file_name_log_prefix} Estado de error (post-OpenAI) actualizado en API.")
+        except Exception as api_err:
+            logging.error(f"{file_name_log_prefix} FALLO al actualizar estado de error (post-OpenAI) en API: {api_err}", exc_info=True)
+    # (Advertencias si falta adaptador o ID, como en _handle_processing_error)
+
+
+    # 3. Borrar blob original (AHORA que el resultado intermedio se guardó)
+    source_blob_client = blob_service_client.get_blob_client(container=original_container, blob=original_blob_name)
+    _delete_blob_if_exists(source_blob_client, f"original ({original_container}/{original_blob_name}) después de guardar resultado intermedio")
+
+
+def _initialize_adapters(kv_name: str) -> Tuple[DocumentIntelligenceAdapter, AzureOpenAIAdapter, RestApiAdapter]:
+    """Inicializa todos los adaptadores obteniendo secretos de Key Vault."""
+    if not kv_name:
+        raise ValueError("KEY_VAULT_URI no está configurado en las variables de entorno.")
+
+    kv_client = KeyVaultClient(kv_name) # Pasar URI al constructor
+    secrets = {}
+    try:
+        for key, secret_name in SECRET_NAMES.items():
+            logging.debug(f"Obteniendo secreto: {secret_name} (para {key})")
+            secret_value = kv_client.get_secret(secret_name)
+            # KeyVaultClient.get_secret ya lanza SecretNotFoundError si no existe o está vacío
+            secrets[key] = secret_value
+
+
+        # Instanciar adaptadores, pasando los secretos recuperados
+        doc_intel_adapter = DocumentIntelligenceAdapter(
+            api_key=secrets["docintel_api_key"],
+            endpoint=secrets["docintel_endpoint"]
+        )
+        openai_adapter = AzureOpenAIAdapter(
+            endpoint=secrets["openai_endpoint"],
+            api_version=secrets["openai_api_version"],
+            model=secrets["openai_model"],
+            deployment=secrets["openai_deployment"],
+            client_id=secrets["client_id"],
+            client_secret=secrets["client_secret"],
+            tenant_id=secrets["tenant_id"],
+        )
+        rest_api_adapter = RestApiAdapter(
+            username=secrets["rest_api_username"],
+            password=secrets["rest_api_password"],
+        )
+        return doc_intel_adapter, openai_adapter, rest_api_adapter
+
+    except (SecretNotFoundError, KeyVaultError) as e:
+        logging.critical(f"CRÍTICO: Falló la obtención de secretos de Key Vault: {e}", exc_info=True)
+        # Relanza para que el bloque 'except' principal lo capture y maneje
+        raise
+    except ValueError as ve: # Capturar ValueError si los constructores fallan por falta de argumento
+        logging.critical(f"CRÍTICO: Falló la inicialización de un adaptador debido a valor faltante o incorrecto: {ve}", exc_info=True)
+        raise KeyVaultError(f"Error al inicializar adaptador con secretos obtenidos: {ve}") from ve # Envolver como KeyVaultError o un nuevo InitializationError
+    except Exception as e:
+        logging.critical(f"CRÍTICO: Falló la inicialización de adaptadores debido a un error inesperado: {e}", exc_info=True)
+        raise KeyVaultError(f"Error inesperado durante la inicialización de adaptadores: {e}") from e
+
+
+# --- Trigger Principal del Blob ---
+@app.blob_trigger(
+    arg_name="inputblob",
+    path="candidates/{name}",
+    connection="AzureWebJobsStorage",
+)
+def process_candidate_cv(inputblob: func.InputStream):
+    """
+    Procesa un CV desde el contenedor 'candidates'.
+    Orden: IDs -> get_resumen -> DI -> OpenAI -> Validación/Cálculo -> API Final.
+    Maneja errores moviendo a 'error' o guardando resultados intermedios.
+    """
+    # Verificar si las dependencias base se cargaron
+    if not DEPENDENCIES_LOADED:
+        logging.critical("CRÍTICO: Las dependencias esenciales no se cargaron. Abortando ejecución de la función.")
+        return # No se puede continuar sin las clases base
+
+    if not inputblob or not inputblob.name:
+        logging.error("Disparador de blob invocado sin blob o nombre válido.")
+        return
+
+    # Extraer container/blob name correctamente
+    # inputblob.name suele ser 'container/blobname'
+    try:
+        container_from_path, blob_name_from_path = inputblob.name.split('/', 1)
+        if container_from_path.lower() != CANDIDATES_CONTAINER.lower():
+             logging.warning(f"Blob '{inputblob.name}' no está en el contenedor esperado '{CANDIDATES_CONTAINER}'. Ignorando.")
+             return
+        file_name = os.path.basename(blob_name_from_path) # Nombre del archivo sin ruta
+        blob_full_path = inputblob.name # Mantener path completo para logs
+        log_prefix = f"[{FUNCTION_PROCESS_TYPE}]" # Prefijo para logs
+    except ValueError:
+        logging.error(f"No se pudo extraer nombre de archivo/contenedor del path: {inputblob.name}")
+        return
+
+    logging.info(f"{log_prefix} --- Iniciando procesamiento para: {blob_full_path} (Tamaño: {inputblob.length} Bytes) ---")
+
+    # Ignorar blobs en subdirectorios (si aplica) o en el contenedor de error mismo
+    if "/" in blob_name_from_path: # Si hay subdirectorios dentro de 'candidates'
+        logging.warning(f"{log_prefix} Ignorando blob en subdirectorio: {blob_full_path}")
+        return
+
+    # Variables de estado y datos
+    rank_id: Optional[str] = None
+    candidate_id: Optional[str] = None
+    blob_service_client: Optional[BlobServiceClient] = None
+    doc_intel_adapter: Optional[DocumentIntelligenceAdapter] = None
+    openai_adapter: Optional[AzureOpenAIAdapter] = None
+    rest_api_adapter: Optional[RestApiAdapter] = None
+    resumen_data: Optional[dict] = None
+    extracted_text: Optional[str] = None
+    analysis_result_str: Optional[str] = None # Guardar el JSON crudo de OpenAI
+    processed_successfully = False # Flag de éxito final
+
+    try:
+        # --- 0. Inicialización Temprana (IDs y Blob Service) ---
+        rank_id = get_id_rank(file_name)
+        candidate_id = get_id_candidate(file_name)
+        
+        if not rank_id or not candidate_id:
+            # Error Crítico Temprano: No se puede continuar sin IDs
+             raise ValueError(f"{log_prefix} - No se pudieron extraer rank_id o candidate_id del nombre de archivo: {file_name}")
+
+        storage_connection_string = os.environ.get(CONNECTION_STRING_ENV_VAR)
+        if not storage_connection_string:
+            raise ValueError(f"{log_prefix} - Variable de entorno '{CONNECTION_STRING_ENV_VAR}' no encontrada.")
+        blob_service_client = BlobServiceClient.from_connection_string(storage_connection_string)
+
+        # --- 1. Inicializar Adaptadores (usando Key Vault) --- !!!CAMBIAR LUEGO DE ADAPTAR LOS SECRETS EN KEY VAULT¡¡¡
+        logging.info(f"{log_prefix} Paso 1: Inicializando adaptadores desde Key Vault...")
+        kv_name = os.environ.get(KEY_VAULT_URI_ENV_VAR)
+        # La excepción de _initialize_adapters detendrá la función si falla
+        doc_intel_adapter, openai_adapter, rest_api_adapter = _initialize_adapters(kv_name)
+        logging.info(f"{log_prefix} Adaptadores inicializados.")
+
+        # --- 2. Obtener Resumen de API Externa ---
+        resumen_data = rest_api_adapter.get_resumen(id=rank_id) # APIError se captura abajo
+        profile_description = resumen_data.get("profileDescription")
+        variables_content = resumen_data.get("variablesContent")
+        if profile_description is None or variables_content is None:
+            # Considerar esto un tipo de APIError si los datos esperados no vienen
+            raise APIError(f"{log_prefix} - Respuesta de get_resumen incompleta para RankID {rank_id}. Faltan 'profileDescription' o 'variablesContent'.")
+
+        # --- 3. Extraer Texto con Document Intelligence ---
+        # Pasar el stream directamente
+        extracted_text = doc_intel_adapter.analyze_cv(inputblob) # DocumentIntelligenceError o NoContentExtractedError se capturan abajo
+        if not extracted_text or not extracted_text.strip():
+             raise NoContentExtractedError(f"{log_prefix} - Document Intelligence no extrajo contenido o el contenido está vacío para {file_name}.")
+
+        # --- 4. Preparar y Llamar a Azure OpenAI ---
+        system_prompt = prompt_system(
+            profile=profile_description,
+            criterios=variables_content,
+        )
+        if not system_prompt:
+             raise ValueError(f"{log_prefix} - El prompt generado para OpenAI está vacío.")
+        if not extracted_text:
+             extracted_text="No se envio ningun contenido, debes retornar vacio."
+        analysis_result_str = openai_adapter.get_completion(
+            system_message=system_prompt, user_message=extracted_text
+        )
+        if not analysis_result_str:
+            raise OpenAIError(f"{log_prefix} - Azure OpenAI devolvió una respuesta vacía para {file_name}.")
+        # A partir de aquí, si hay un error, se guardará en analysis_result_str
+
+        # --- Inicio Bloque Post-OpenAI ---
+        # Cualquier error aquí resultará en guardar el resultado intermedio
+
+        # --- 5. Validar JSON de OpenAI ---
+        cv_score, cv_analysis, candidate_name = extract_and_validate_cv_data_from_json(analysis_result_str)
+        # La función de validación debería lanzar JSONValidationError si falla
+        if cv_score is None or cv_analysis is None or candidate_name is None:
+             # Reforzar la validación por si la función no lanza excepción pero devuelve None
+             raise JSONValidationError(f"Validación fallida o datos incompletos en JSON de OpenAI para {file_name}.")
+
+        # --- 6. Calcular Promedio ---
+        promedio_scores = calculate_average_score_from_dict(cv_score)
+        # Esta función debería manejar internamente errores de tipo o formato en cv_score
+        if promedio_scores is None:
+             raise ValueError(f"{log_prefix} - Cálculo del promedio de scores falló para {file_name}.")
+
+        # --- 8. Enviar Resultados a API REST Final ---
+
+        # 8a. Enviar Scores
+        rest_api_adapter.add_scores(candidate_id=candidate_id, scores=cv_score)
+
+        # 8b. Guardar Resumen Completo
+        rest_api_adapter.save_resumen(
+            candidate_id=candidate_id,
+            transcription=extracted_text,
+            score=promedio_scores,
+            analysis=cv_analysis,
+            candidate_name=candidate_name
+        )
+
+        # 8c. Marcar como Procesado Exitosamente
+        rest_api_adapter.update_candidate(
+            candidate_id=candidate_id,
+            error_message=None
+        )
+
+        # --- Éxito Total ---
+        processed_successfully = True
+        logging.info(f"{log_prefix} *** PROCESO COMPLETADO EXITOSAMENTE ***")
+
+    # --- Manejo de Errores Específicos (Pre-OpenAI o Críticos) ---
+    except (ValueError, SecretNotFoundError, KeyVaultError, # Errores de inicialización/configuración/IDs
+            APIError, AuthenticationError, # Errores de API REST (get_resumen)
+            DocumentIntelligenceError, NoContentExtractedError, # Errores de DI
+            OpenAIError # Errores de OpenAI
+            ) as early_or_critical_error:
+        error_details = f"{type(early_or_critical_error).__name__}: {early_or_critical_error}"
+        # Mover a error, crear JSON, actualizar API, borrar original
+        if blob_service_client:
+            _handle_processing_error(
+                blob_service_client=blob_service_client,
+                original_container=CANDIDATES_CONTAINER,
+                original_blob_name=file_name,
+                error_reason=error_details,
+                file_name_log_prefix=log_prefix,
+                rest_api_adapter=rest_api_adapter,
+                candidate_id=candidate_id
+            )
+        else:
+            # Si blob_service_client no se inicializó, solo podemos loguear
+            logging.critical(f"{log_prefix} Error MUY temprano ({error_details}). No se puede mover a error (BlobServiceClient no disponible).")
+
+
+    # --- Manejo de Errores Post-OpenAI ---
+    except (JSONValidationError, TypeError, APIError, AuthenticationError
+             ) as post_openai_error:
+        failed_step = "UnknownPostOpenAI"
+        # Determinar el paso específico si es posible
+        if isinstance(post_openai_error, (JSONValidationError, TypeError, ValueError)): # ValueError podría ser del promedio
+            failed_step = "ValidationOrCalculation"
+        elif isinstance(post_openai_error, (APIError, AuthenticationError)):
+            # Aquí podrías intentar ser más específico si tu adaptador API lanza errores distintos
+            # por add_scores, save_resumen, update_candidate. Por ahora, genérico.
+            failed_step = "FinalAPISaveOrUpdate"
+
+        error_details = f"{type(post_openai_error).__name__}: {post_openai_error}"
+        logging.error(f"{log_prefix} Error en paso post-OpenAI '{failed_step}': {error_details}", exc_info=True)
+
+        # Guardar resultado intermedio y borrar original
+        if blob_service_client and analysis_result_str and resumen_data and extracted_text:
+            _save_intermediate_result_and_cleanup(
+                 blob_service_client=blob_service_client,
+                 original_container=CANDIDATES_CONTAINER,
+                 original_blob_name=file_name,
+                 rank_id=rank_id,
+                 candidate_id=candidate_id,
+                 openai_result_str=analysis_result_str,
+                 get_resumen_result=resumen_data,
+                 transcription=extracted_text,
+                 failed_step=failed_step,
+                 error_details=error_details,
+                 file_name_log_prefix=log_prefix,
+                 rest_api_adapter=rest_api_adapter
+            )
+        else:
+             logging.critical(f"{log_prefix} No se pudo guardar el resultado intermedio por falta de datos críticos (blob_service_client, openai_result, etc.). El blob original podría NO ser borrado.")
+             # Intentar actualizar API aunque no se guarde el intermedio
+             if rest_api_adapter and candidate_id:
+                  try:
+                      rest_api_adapter.update_candidate(candidate_id=candidate_id, error_message=f"Error en {failed_step} (Intermedio NO guardado): {error_details}"[:1000])
+                  except Exception as api_err:
+                      logging.error(f"{log_prefix} FALLO al actualizar API sobre error post-OpenAI (sin intermedio): {api_err}")
+
+
+    # --- Manejo de Errores Inesperados ---
+    except Exception as unexpected_error:
+        error_details = f"{log_prefix} - UnexpectedError: {type(unexpected_error).__name__} - {unexpected_error}"
+        logging.exception(f"{log_prefix} ¡Error Inesperado!") # Log con traceback
+
+        # Decidir si tratarlo como error temprano o post-OpenAI
+        if analysis_result_str and blob_service_client and resumen_data and extracted_text:
+            # Si OpenAI ya corrió, intentar guardar intermedio
+             _save_intermediate_result_and_cleanup(
+                 blob_service_client=blob_service_client,
+                 original_container=CANDIDATES_CONTAINER,
+                 original_blob_name=file_name,
+                 rank_id=rank_id,
+                 candidate_id=candidate_id,
+                 openai_result_str=analysis_result_str,
+                 get_resumen_result=resumen_data,
+                 transcription=extracted_text,
+                 failed_step="Unexpected",
+                 error_details=error_details,
+                 file_name_log_prefix=log_prefix,
+                 rest_api_adapter=rest_api_adapter
+             )
+        elif blob_service_client:
+             # Si fue antes de OpenAI o faltan datos, tratar como error temprano
+             _handle_processing_error(
+                 blob_service_client=blob_service_client,
+                 original_container=CANDIDATES_CONTAINER,
+                 original_blob_name=file_name,
+                 error_reason=error_details,
+                 file_name_log_prefix=log_prefix,
+                 rest_api_adapter=rest_api_adapter,
+                 candidate_id=candidate_id
+            )
+        else:
+            logging.critical(f"{log_prefix} Error Inesperado ({error_details}). No se puede manejar el blob (BlobServiceClient no disponible).")
+
+    finally:
+        # --- Limpieza Final ---
+        # La lógica principal de borrado/movimiento ya está en los handlers de error.
+        # Aquí solo necesitamos borrar el original SI el proceso fue COMPLETAMENTE exitoso.
+        if processed_successfully and blob_service_client:
+            logging.info(f"{log_prefix} Proceso exitoso. Intentando borrar blob original final...")
+            source_blob_client = blob_service_client.get_blob_client(container=CANDIDATES_CONTAINER, blob=file_name)
+            _delete_blob_if_exists(source_blob_client, f"original ({CANDIDATES_CONTAINER}/{file_name}) después de éxito total")
+        elif not processed_successfully:
+             logging.warning(f"{log_prefix} El proceso no fue exitoso. La gestión del blob original (borrado/movido a error) debería haberse realizado en el bloque 'except' correspondiente.")
+             # Podrías añadir un check aquí para ver si el blob original todavía existe,
+             # lo cual indicaría un posible fallo en la lógica de manejo de errores.
+             try:
+                 if blob_service_client:
+                     check_client = blob_service_client.get_blob_client(container=CANDIDATES_CONTAINER, blob=file_name)
+                     if check_client.exists():
+                         logging.error(f"{log_prefix} ¡ALERTA! El blob original '{CANDIDATES_CONTAINER}/{file_name}' todavía existe después de un fallo. La lógica de manejo de errores puede tener un problema.")
+             except Exception as check_err:
+                 logging.error(f"{log_prefix} Error al verificar existencia del blob original después de fallo: {check_err}")
+
+        logging.info(f"{log_prefix} --- Finalizando procesamiento para: {blob_full_path} ---")
+
+# shared
+
+extracted_values.python
+def get_subfolder_name(file_path: str) -> str:
+    path_sections = file_path.split("/")
+    if len(path_sections) > 1:
+        return path_sections[-2]
+    return ""
+
+
+def get_sub_subfolder_name(file_path: str) -> str:
+    path_sections = file_path.split("/")
+    if len(path_sections) > 2:
+        return path_sections[-3]
+    return ""
+
+
+def get_file_name_with_extension(file_path: str) -> str:
+    path_sections = file_path.split("/")
+    return path_sections[-1]
+
+
+def get_file_name_without_extension(file_path: str) -> str:
+    file_name = get_file_name_with_extension(file_path)
+    file_sections = file_name.split(".")
+    if len(file_sections) > 1:
+        return ".".join(file_sections[:-1])
+    return file_name
+
+
+def get_file_extension(file_path: str) -> str:
+    file_name = get_file_name_with_extension(file_path)
+    parts = file_name.split(".")
+    if len(parts) > 1:
+        return parts[-1]
+    return ""
+
+def get_id_rank(file_path: str) ->str:
+    file_name= get_file_name_without_extension(file_path)
+    parts=file_name.split("_")
+    if len(parts) > 0:
+        id_rank_part = parts[0]
+        return id_rank_part[:]
+    return ""
+
+def get_id_candidate(file_path: str) ->str:
+    file_name = get_file_name_without_extension(file_path)
+    parts= file_name.split("_")
+    if len(parts) > 1:
+        id_candidate_part = parts[1]
+        return id_candidate_part[:]
+    return ""
+
+
+promedio_scores.py
+
+import logging
+from typing import Dict, Optional
+
+
+def calculate_average_score_from_dict(
+    cv_scores_dict: Optional[Dict[str, int]]
+) -> Optional[float]:
+    """
+    Calcula el promedio de las puntuaciones en un diccionario de scores de CV.
+
+    Args:
+        cv_scores_dict: Un diccionario donde las claves son letras (str)
+                        y los valores son puntuaciones (int).
+                        Se asume que este diccionario proviene de una validación
+                        previa y solo contiene enteros válidos (0-100).
+                        Puede ser None.
+
+    Returns:
+        El promedio de las puntuaciones con un máximo de 2 decimales,
+        o None si el diccionario es None, no es un diccionario, o está vacío.
+    """
+    # --- Validación de Entrada ---
+    if cv_scores_dict is None:
+        logging.warning(
+            "El diccionario de scores es None. No se puede calcular el promedio."
+        )
+        return None
+
+    # Comprobación de tipo (robustez por si se llama incorrectamente)
+    if not isinstance(cv_scores_dict, dict):
+        logging.error(
+            f"Se esperaba un diccionario, pero se recibió: {type(cv_scores_dict)}. No se puede calcular el promedio."
+        )
+        return None
+
+    # Comprobación si el diccionario está vacío
+    if not cv_scores_dict:  # Un diccionario vacío se evalúa como False
+        logging.warning(
+            "El diccionario de scores está vacío. No se puede calcular el promedio."
+        )
+        return None
+
+    # --- Cálculo del Promedio ---
+    scores = list(cv_scores_dict.values())
+
+    total_score = sum(scores)
+    count = len(scores)
+
+    average_score = total_score / count
+    formatted_average = round(average_score, 2)
+    return formatted_average
+
+# prompt_system.py
+
+from datetime import datetime
+
+def prompt_system(
+    profile: str, criterios: str, current_date: str = None
+) -> str:
+    """
+    Genera el prompt para un sistema de análisis de Cvs.
+
+    Args:
+        profile (str): Descripción del perfil profesional.
+        criterios (str): Criterios de evaluación en formato texto.
+        cv_candidato (str): El cv del candidato.
+        current_date(str, opcional): Fecha actual en formato 'YYYY-MM-DD'. Si no se proporciona, usa la fecha actual.
+
+    Returns:
+        str: El prompt completo para el sistema de análisis de Cvs.
+    """
+
+    if current_date is None:
+        current_date = datetime.now().strftime("%Y-%m-%d")
+
+    prompt = f"""Eres un asistente virtual inteligente de reclutamiento de personal.
+Tu tarea principal es analizar los CVs de los candidatos y calificarlos según criterios específicos predeterminados.
+Debes basarte exclusivamente en la información explícitamente mencionada en el CV para realizar tus evaluaciones.
+No debes inferir ni deducir habilidades o experiencias que no estén claramente documentadas en el CV.
+Si necesitas calcular los años de experiencia hasta la actualidad, considera que estamos en {current_date}.
+Al asignar puntajes a cada ítem, asegúrate de justificar cada calificación con referencias directas a la información proporcionada en el CV en "cvAnalysis".
+Tambien debes ubicar el nombre del candidato y completar en donde dice "nameCandidate", este debe ser en nombres y Apellidos, si no se encuentra los nombres del cv, envias vacio en ese parametro.
+
+Criterios de evaluación del perfil {profile}:
+
+{criterios}
+
+Por favor, asegúrate de que el CV esté bien estructurado y tenga toda la información necesaria para realizar una evaluación precisa.
+--- FORMATO DE SALIDA OBLIGATORIO ---
+Debes generar un archivo JSON VÁLIDO con la siguiente estructura EXACTA:
+
+{{
+  "nameCandidate": "...",
+  "cvAnalysis": "...",
+  "cvScore": {{ ... }}
+}}
+
+Descripción detallada de la estructura:
+1. `"nameCandidate"`: Un string con el nombre completo (Nombres y Apellidos) del candidato extraído del CV.
+2. `"cvAnalysis"`: Un string que contiene tu justificación detallada de CÓMO asignaste los puntajes a cada criterio, haciendo referencia explícita a la información encontrada en el CV.
+3. `"cvScore"`: Un **objeto JSON** (diccionario). NO es una lista.
+    *  Dentro de este objeto `cvScore`, las **claves** (keys) deben ser las letras mayúsculas (A, B, C, ...) que identifican cada uno de los criterios de evaluación que te proporcioné arriba.
+    *  Los **valores** (values) asociados a cada letra deben ser el puntaje asignado a ese criterio específico, como un **número entero** entre 0 y 100 (inclusive).
+
+**IMPORTANTE:** El objeto `cvScore` debe contener **ÚNICAMENTE** las claves correspondientes a las letras de los criterios que te he listado en la sección "Criterios de evaluación del perfil {profile}".
+*  Si te proporcioné criterios A, B, C, D, E, el objeto `cvScore` debe tener exactamente 5 claves: "A", "B", "C", "D", "E".
+*  Si te proporcioné criterios A, B, C, el objeto `cvScore` debe tener exactamente 3 claves: "A", "B", "C".
+*  **NO** incluyas letras de la A a la Z si no corresponden a un criterio proporcionado.
+
+Ejemplo de cómo DEBERÍA verse la estructura JSON si los criterios fueran A, B, C:
+{{
+  "nameCandidate": "Juan Pérez García",
+  "cvAnalysis": "Justificación A: ... Justificación B: ... Justificación C: ...",
+  "cvScore": {{
+    "A": 100,
+    "B": 75,
+    "C": 30
+  }}
+}}
+
+**NO agregues NADA MÁS al JSON.** Ni texto introductorio, ni comentarios, ni saltos de línea innecesarios DENTRO del JSON string. Solo la estructura descrita. Asegúrate de que las comillas y las comas sean correctas para que sea un JSON válido.
+
+--- FIN FORMATO DE SALIDA OBLIGATORIO ---
+
+Este es el CV:
+"""
+    return prompt
+
+
+
+# validate_process_json.py
+import json
+import logging
+import string
+from typing import Dict, Optional, Tuple
+
+VALID_LETTERS = set(string.ascii_uppercase)
+
+def extract_and_validate_cv_data_from_json(
+    json_string: str,
+) -> Tuple[Optional[Dict[str, int]], Optional[str], Optional[str]]:
+    """
+    Parsea JSON de análisis de CV, extrae datos y valida 'cvScore' estrictamente
+    esperando que sea un diccionario {'A': 100, 'B': 75, ...}.
+
+    Busca 'cvScore', 'cvAnalysis', 'nameCandidate'.
+    Valida que 'cvScore' sea un diccionario donde:
+        - Las claves (keys) son strings de una sola letra mayúscula (A-Z).
+        - Los valores (values) son enteros entre 0 y 100 (inclusive).
+
+    Si 'cvScore' falta, no es un diccionario, o *cualquier* par clave-valor
+    falla la validación, se devuelve None para el diccionario de puntuaciones.
+
+    Args:
+        json_string: La cadena de texto que contiene el JSON.
+
+    Returns:
+        Una tupla con tres elementos:
+        1. El diccionario 'cvScore' original si es válido, o None si faltó o fue inválido.
+        2. El valor de 'cvAnalysis' (string) o None si falta o no es string.
+        3. El valor de 'nameCandidate' (string) o None si falta o no es string.
+
+    Raises:
+        json.JSONDecodeError: Si la cadena `json_string` no es un JSON válido.
+        TypeError: Si el JSON parseado no es un diccionario raíz.
+    """
+    if not json_string:
+        logging.warning(
+            "Se recibió una cadena JSON vacía para extraer datos de CV."
+        )
+        return None, None, None
+
+    try:
+        parsed_data = json.loads(json_string)
+    except json.JSONDecodeError as e:
+        logging.error(f"Error al decodificar JSON: {e}")
+        raise
+
+    if not isinstance(parsed_data, dict):
+        raise TypeError(
+            f"El JSON parseado para CV no es un diccionario raíz. Tipo recibido: {type(parsed_data)}"
+        )
+
+    # --- Extracción inicial  ---
+    raw_cv_score = parsed_data.get("cvScore")
+    cv_analysis = parsed_data.get("cvAnalysis")
+    candidate_name = parsed_data.get("nameCandidate")
+
+    # --- Validación del Diccionario 'cvScore' ---
+    validated_scores_dict: Optional[Dict[str, int]] = None
+
+    if raw_cv_score is None:
+        logging.warning("La clave 'cvScore' no se encontró en la respuesta JSON.")
+    elif not isinstance(raw_cv_score, dict):
+        logging.warning(
+            f"La clave 'cvScore' se encontró pero NO es un diccionario (tipo: {type(raw_cv_score)}). Se considera inválida."
+        )
+    else:
+        all_items_valid = True
+        # --- Iterar sobre Clave-Valor ---
+        for letter, result in raw_cv_score.items():
+            item_is_valid = False
+            error_msg = ""
+
+            # 1. Validar la Clave (letter)
+            if not isinstance(letter, str):
+                error_msg = f"Clave '{letter}' no es un string."
+            elif len(letter) != 1:
+                error_msg = f"Clave '{letter}' no es un carácter único."
+            elif letter not in VALID_LETTERS:
+                error_msg = f"Clave '{letter}' no es una letra mayúscula A-Z."
+            # 2. Validar el Valor (result) - solo si la clave es válida
+            elif not isinstance(result, int) or isinstance(result, bool):
+                error_msg = f"Valor para la clave '{letter}' no es un entero (tipo: {type(result)}, valor: {result})."
+            elif not 0 <= result <= 100:
+                error_msg = f"Valor para la clave '{letter}' ({result}) está fuera del rango [0, 100]."
+            else:
+                item_is_valid = True
+
+            if not item_is_valid:
+                logging.warning(
+                    f"Validación fallida para el diccionario 'cvScore': {error_msg}"
+                )
+                all_items_valid = False
+                break
+
+        if all_items_valid:
+            validated_scores_dict = raw_cv_score
+        else:
+            logging.warning("El diccionario 'cvScore' contenía elementos inválidos y no será devuelto.")
+
+    # --- Procesamiento final de otros campos ---
+
+    final_analysis = str(cv_analysis) if isinstance(cv_analysis, str) else None
+    if cv_analysis is not None and final_analysis is None:
+        logging.warning(
+            f"'cvAnalysis' no era un string (tipo: {type(cv_analysis)}), se devuelve None."
+        )
+
+    final_name = str(candidate_name) if isinstance(candidate_name, str) else None
+    if candidate_name is not None and final_name is None:
+        logging.warning(
+            f"'nameCandidate' no era un string (tipo: {type(candidate_name)}), se devuelve None."
+        )
+
+    return validated_scores_dict, final_analysis, final_name
+
+
+# interfaces
+api_rest_repository_interface.py
+import json
+import logging
+import string
+from typing import Dict, Optional, Tuple
+
+VALID_LETTERS = set(string.ascii_uppercase)
+
+def extract_and_validate_cv_data_from_json(
+    json_string: str,
+) -> Tuple[Optional[Dict[str, int]], Optional[str], Optional[str]]:
+    """
+    Parsea JSON de análisis de CV, extrae datos y valida 'cvScore' estrictamente
+    esperando que sea un diccionario {'A': 100, 'B': 75, ...}.
+
+    Busca 'cvScore', 'cvAnalysis', 'nameCandidate'.
+    Valida que 'cvScore' sea un diccionario donde:
+        - Las claves (keys) son strings de una sola letra mayúscula (A-Z).
+        - Los valores (values) son enteros entre 0 y 100 (inclusive).
+
+    Si 'cvScore' falta, no es un diccionario, o *cualquier* par clave-valor
+    falla la validación, se devuelve None para el diccionario de puntuaciones.
+
+    Args:
+        json_string: La cadena de texto que contiene el JSON.
+
+    Returns:
+        Una tupla con tres elementos:
+        1. El diccionario 'cvScore' original si es válido, o None si faltó o fue inválido.
+        2. El valor de 'cvAnalysis' (string) o None si falta o no es string.
+        3. El valor de 'nameCandidate' (string) o None si falta o no es string.
+
+    Raises:
+        json.JSONDecodeError: Si la cadena `json_string` no es un JSON válido.
+        TypeError: Si el JSON parseado no es un diccionario raíz.
+    """
+    if not json_string:
+        logging.warning(
+            "Se recibió una cadena JSON vacía para extraer datos de CV."
+        )
+        return None, None, None
+
+    try:
+        parsed_data = json.loads(json_string)
+    except json.JSONDecodeError as e:
+        logging.error(f"Error al decodificar JSON: {e}")
+        raise
+
+    if not isinstance(parsed_data, dict):
+        raise TypeError(
+            f"El JSON parseado para CV no es un diccionario raíz. Tipo recibido: {type(parsed_data)}"
+        )
+
+    # --- Extracción inicial  ---
+    raw_cv_score = parsed_data.get("cvScore")
+    cv_analysis = parsed_data.get("cvAnalysis")
+    candidate_name = parsed_data.get("nameCandidate")
+
+    # --- Validación del Diccionario 'cvScore' ---
+    validated_scores_dict: Optional[Dict[str, int]] = None
+
+    if raw_cv_score is None:
+        logging.warning("La clave 'cvScore' no se encontró en la respuesta JSON.")
+    elif not isinstance(raw_cv_score, dict):
+        logging.warning(
+            f"La clave 'cvScore' se encontró pero NO es un diccionario (tipo: {type(raw_cv_score)}). Se considera inválida."
+        )
+    else:
+        all_items_valid = True
+        # --- Iterar sobre Clave-Valor ---
+        for letter, result in raw_cv_score.items():
+            item_is_valid = False
+            error_msg = ""
+
+            # 1. Validar la Clave (letter)
+            if not isinstance(letter, str):
+                error_msg = f"Clave '{letter}' no es un string."
+            elif len(letter) != 1:
+                error_msg = f"Clave '{letter}' no es un carácter único."
+            elif letter not in VALID_LETTERS:
+                error_msg = f"Clave '{letter}' no es una letra mayúscula A-Z."
+            # 2. Validar el Valor (result) - solo si la clave es válida
+            elif not isinstance(result, int) or isinstance(result, bool):
+                error_msg = f"Valor para la clave '{letter}' no es un entero (tipo: {type(result)}, valor: {result})."
+            elif not 0 <= result <= 100:
+                error_msg = f"Valor para la clave '{letter}' ({result}) está fuera del rango [0, 100]."
+            else:
+                item_is_valid = True
+
+            if not item_is_valid:
+                logging.warning(
+                    f"Validación fallida para el diccionario 'cvScore': {error_msg}"
+                )
+                all_items_valid = False
+                break
+
+        if all_items_valid:
+            validated_scores_dict = raw_cv_score
+        else:
+            logging.warning("El diccionario 'cvScore' contenía elementos inválidos y no será devuelto.")
+
+    # --- Procesamiento final de otros campos ---
+
+    final_analysis = str(cv_analysis) if isinstance(cv_analysis, str) else None
+    if cv_analysis is not None and final_analysis is None:
+        logging.warning(
+            f"'cvAnalysis' no era un string (tipo: {type(cv_analysis)}), se devuelve None."
+        )
+
+    final_name = str(candidate_name) if isinstance(candidate_name, str) else None
+    if candidate_name is not None and final_name is None:
+        logging.warning(
+            f"'nameCandidate' no era un string (tipo: {type(candidate_name)}), se devuelve None."
+        )
+
+    return validated_scores_dict, final_analysis, final_name
+
+
+#infrastructure
+# api_rest
+#api_rest_adapter.py
+
+
+import os
+import logging
+import requests
+from typing import Dict, Optional
+
+from src.domain.entities.api_credentials import ApiCredentials
+from src.domain.exceptions import APIError, AuthenticationError
+from src.interfaces.api_rest_repository_interface import ApiRestRepositoryInterface
+
+ENV_API_ROLE = "ApiServices__IARC__Role"
+ENV_API_USER_APPLICATION = "ApiServices__IARC__UserFunction"
+ENV_API_BASE_URL = "ApiServices__IARC__Backend"
+TOKEN_EXPIRATION_MINUTES = 20
+TOKEN_EXPIRATION_SECONDS = TOKEN_EXPIRATION_MINUTES * 60
+
+
+class RestApiAdapter(ApiRestRepositoryInterface):
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        base_url_env_var: str = ENV_API_BASE_URL,
+        role_env_var: str = ENV_API_ROLE,
+        user_app_env_var: str = ENV_API_USER_APPLICATION,
+    ):
+        self.base_url = os.environ.get(base_url_env_var)
+        self.username = username
+        self.password = password
+        self.role = os.environ.get(role_env_var)
+        self.user_application = os.environ.get(user_app_env_var)
+        self._credentials: Optional[ApiCredentials] = None
+
+        missing_values = []  # Lista para almacenar los campos faltantes
+
+        if not self.base_url:
+            missing_values.append("base_url")
+        if not self.username:
+            missing_values.append("username")
+        if not self.password:
+            missing_values.append("password")
+        if not self.role:
+            missing_values.append("role")
+        if not self.user_application:
+            missing_values.append("user_application")
+
+        if missing_values:
+            error_message = "Faltan valores requeridos para la API del REST API Adapter: " + ", ".join(missing_values)
+            raise ValueError(error_message)
+
+    def _authenticate(self) -> ApiCredentials:
+        """Autentica contra la API y devuelve las credenciales (token)."""
+        url = f"{self.base_url}/Account"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "username": self.username,
+            "password": self.password,
+            "role": self.role,
+            "userApplication": self.user_application,
+        }
+        try:
+            response = requests.post(
+                url, headers=headers, json=data, verify=True
+            )
+            response.raise_for_status()
+
+            token = response.text.strip()
+
+            if not token:
+                logging.error("API returned an empty token.")
+                raise AuthenticationError("API returned an empty token.")
+
+            return ApiCredentials(
+                token=token, expires_in=TOKEN_EXPIRATION_SECONDS
+            )
+
+        except requests.exceptions.RequestException as e:
+            logging.exception("Error during authentication: %s", e)
+            raise AuthenticationError(f"Authentication failed: {e}") from e
+
+    def get_credentials(self) -> ApiCredentials:
+        """Obtiene las credenciales válidas (autenticando si es necesario)."""
+        if self._credentials is None or not self._credentials.is_valid():
+            self._credentials = self._authenticate()
+        return self._credentials
+
+    def _make_request(
+        self,
+        method: str,
+        endpoint: str,
+        params: dict = None,
+        data: dict = None,
+        headers: dict = None,
+        verify: bool = True,
+        expect_response_body: bool = True,
+    ) -> Optional[dict]:
+        """Realiza una petición a la API, manejando la autenticación."""
+
+        credentials = self.get_credentials()
+        auth_headers = {"Authorization": f"Bearer {credentials.token}"}
+
+        if headers:
+            headers.update(auth_headers)
+        else:
+            headers = auth_headers
+
+        url = f"{self.base_url}{endpoint}"
+
+        try:
+            response = requests.request(
+                method, url, params=params, json=data, headers=headers, verify=verify
+            )
+            # Esto verifica el estado HTTP (2xx es éxito, otros lanzan excepción)
+            response.raise_for_status()
+
+            # Si no esperamos cuerpo de respuesta O si la respuesta es 204 No Content (sin cuerpo)
+            if not expect_response_body or response.status_code == 204:
+                 logging.debug(f"Request to {url} succeeded with status {response.status_code}. No response body expected/processed.")
+                 return None
+
+            # Si esperamos cuerpo de respuesta Y hay contenido
+            if response.content:
+                 logging.debug(f"Request to {url} succeeded with status {response.status_code}. Processing response body.")
+                 return response.json() # Procesamos y devolvemos el diccionario
+            else:
+                 logging.warning(f"Request to {url} succeeded with status {response.status_code}, but no content was returned despite expecting a body.")
+                 return None
+
+        except requests.exceptions.RequestException as e:
+            logging.exception("Error during API request to %s: %s", url, e)
+            if isinstance(e, requests.exceptions.HTTPError) and e.response is not None:
+                logging.error("Response content on error: %s", e.response.text)
+            raise APIError(f"API request failed: {e}") from e
+
+    def get(self, endpoint: str, params: dict = None, headers: dict = None, expect_response_body: bool = True) -> Optional[dict]:
+        """Realiza una petición GET a la API."""
+        return self._make_request("GET", endpoint, params=params, headers=headers, verify=True, expect_response_body=expect_response_body)
+
+    def post(self, endpoint: str, data: dict, headers: dict = None, expect_response_body: bool = True) -> Optional[dict]:
+        """Realiza una petición POST a la API."""
+        return self._make_request("POST", endpoint, data=data, headers=headers, expect_response_body=expect_response_body)
+
+    def put(self, endpoint: str, data: dict, headers: dict = None, expect_response_body: bool = True) -> Optional[dict]:
+        """Realiza una petición PUT a la API."""
+        return self._make_request("PUT", endpoint, data=data, headers=headers, expect_response_body=expect_response_body)
+
+    def patch(self, endpoint: str, data: dict, headers: dict = None, expect_response_body: bool = True) -> Optional[dict]:
+        """Realiza una petición PATCH a la API."""
+        return self._make_request("PATCH", endpoint, data=data, headers=headers, expect_response_body=expect_response_body)
+
+    def delete(self, endpoint: str, headers: dict = None, expect_response_body: bool = True) -> Optional[dict]:
+        """Realiza una petición DELETE a la API."""
+        return self._make_request("DELETE", endpoint, headers=headers, expect_response_body=expect_response_body)
+
+    # -----------------------------------------------------------------------------------------------
+    # --- /Profile ---
+    def get_profile_id(self, id: str) -> dict:
+        """Obtiene un profile por ID (GET /Profile/{id})."""
+        endpoint = f"/Profile/{id}"
+        return self.get(endpoint)
+
+    # -----------------------------------------------------------------------------------------------
+    # --- /Resumen ---
+
+    def get_resumen(self, id: str) -> dict:
+        """Obtiene un resumen por ID (GET /Resumen/{id})."""
+        endpoint = f"/Resumen/{id}"
+        return self.get(endpoint)
+
+    def add_scores(self, candidate_id: str, scores: Dict[str, int]) -> None:
+        """Agrega puntuaciones a un candidato (POST /Resumen/AddScores).
+           No espera cuerpo de respuesta, solo éxito HTTP."""
+        endpoint = "/Resumen/AddScores"
+        data = {
+            "candidateId": candidate_id,
+            "scores": scores,
+        }
+        self.post(endpoint, data=data, expect_response_body=False)
+
+    def save_resumen(
+        self,
+        candidate_id: str,
+        transcription: str,
+        score: float,
+        candidate_name: str,
+        analysis: str,
+    ) -> None:
+        """Guarda un resumen (POST /Resumen/Save).
+           No espera cuerpo de respuesta, solo éxito HTTP."""
+        endpoint = "/Resumen/Save"
+        data = {
+            "candidateId": candidate_id,
+            "transcription": transcription,
+            "score": score,
+            "analysis": analysis,
+            "candidateName": candidate_name,
+        }
+        self.post(endpoint, data=data, expect_response_body=False)
+
+
+    def update_candidate(
+        self, candidate_id: str, error_message: Optional[str] = None
+    ) -> None:
+        """Actualiza un candidato (PUT /Resumen).
+           No espera cuerpo de respuesta, solo éxito HTTP."""
+        endpoint = "/Resumen"
+        data = {
+            "candidateId": candidate_id,
+            "errorMessage": error_message,
+        }
+        self.put(endpoint, data=data, expect_response_body=False)
+
+
+#key_vault.py
+key_vault_client.py
+
+import os
+import logging
+from azure.keyvault.secrets import SecretClient
+from azure.identity import DefaultAzureCredential
+from azure.core.exceptions import ResourceNotFoundError, ClientAuthenticationError
+
+from src.domain.exceptions import (
+    KeyVaultError,
+    SecretNotFoundError,
+)
+
+class KeyVaultClient:
+    """Cliente para interactuar con Azure Key Vault y obtener secretos."""
+
+    def __init__(self, kv_name: str):
+        self.kv_name = kv_name
+        if not self.kv_name:
+            logging.error(
+                "CRÍTICO: La URI del Key Vault no se ha proporcionado."
+            )
+            raise ValueError(
+                "La URI del Key Vault no se ha proporcionado."
+            )
+
+        vault_uri =f"https://{self.kv_name}.vault.azure.net/"
+        try:
+            # DefaultAzureCredential intentará varios métodos de autenticación:
+            # 1. Variables de entorno (AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_CLIENT_SECRET)
+            # 2. Identidad Administrada (si se ejecuta en Azure con Managed Identity habilitada)
+            # 3. Credenciales de usuario logueado (Azure CLI, VS Code, etc. - para desarrollo local)
+            credential = DefaultAzureCredential()
+            # Verifica si la credencial es válida (intenta obtener un token silenciosamente)
+            # Esto puede ayudar a detectar problemas de autenticación temprano
+            # credential.get_token("https://vault.azure.net/.default")
+
+            self.secret_client = SecretClient(
+                vault_url=vault_uri, credential=credential
+            )
+        except Exception as e:
+            logging.exception(
+                "Error al inicializar DefaultAzureCredential o SecretClient."
+            )
+            raise KeyVaultError(f"Error al inicializar el cliente de Key Vault: {e}") from e
+
+    def get_secret(self, secret_name: str) -> str:
+        """
+        Obtiene el valor de un secreto desde Azure Key Vault.
+
+        Args:
+            secret_name: El nombre del secreto a obtener.
+
+        Returns:
+            El valor del secreto como una cadena.
+
+        Raises:
+            SecretNotFoundError: Si el secreto no se encuentra en Key Vault.
+            KeyVaultError: Si ocurre cualquier otro error al interactuar con Key Vault.
+        """
+        logging.debug("Intentando recuperar el secreto: %s", secret_name)
+        try:
+            # Obtiene el secreto
+            retrieved_secret = self.secret_client.get_secret(secret_name)
+            return retrieved_secret.value
+        except ResourceNotFoundError:
+            logging.error("Secreto no encontrado en Key Vault: %s", secret_name)
+            raise SecretNotFoundError(
+                f"Secreto '{secret_name}' no encontrado en Key Vault: {self.vault_uri}"
+            )
+        except ClientAuthenticationError as e:
+            logging.error(
+                "Error de autenticación al recuperar el secreto '%s': %s", secret_name, e
+            )
+            raise KeyVaultError(
+                f"Error de autenticación al recuperar el secreto '{secret_name}': {e}"
+            ) from e
+        except Exception as e:
+            # Captura otros posibles errores (ej. problemas de red con Key Vault)
+            logging.exception(
+                "Error al recuperar el secreto '%s' desde Key Vault: %s",
+                secret_name,
+                e,
+            )
+            raise KeyVaultError(f"Error al recuperar el secreto '{secret_name}': {e}") from e
+
+# ocr
+
+# document_intelligence_adapter.py
+import os
+import logging
+import time
+from typing import BinaryIO
+from functools import wraps
+
+from azure.core.credentials import AzureKeyCredential
+from azure.ai.documentintelligence import DocumentIntelligenceClient
+from azure.ai.documentintelligence.models import AnalyzeDocumentRequest, AnalyzeResult
+from azure.core.exceptions import (
+    ServiceRequestError,
+    HttpResponseError,
+    ClientAuthenticationError,
+)
+from src.domain.exceptions import (
+    DocumentIntelligenceError,
+    NoContentExtractedError,
+)
+
+def _retry_on_service_error(max_retries: int = 3, retry_delay: int = 30):
+    """
+    Decorador para reintentar llamadas a la API en caso de errores de servicio transitorios.
+
+    Args:
+        max_retries (int): Número máximo de reintentos.
+        retry_delay (int): Retraso inicial en segundos entre reintentos.
+
+    Returns:
+        callable: Función decorada.
+    """
+
+    def decorator(func):
+        @wraps(func)  # Preserva los metadatos de la función original (nombre, docstring, etc.)
+        def wrapper(*args, **kwargs):
+            retries = 0
+            while retries < max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except ServiceRequestError as e:  # Errores de conexión/red
+                    retries += 1
+                    if retries < max_retries:
+                        wait_time = retry_delay * (2 ** (retries - 1))
+                        logging.warning(
+                            "ServiceRequestError (intento %d de %d). Reintentando en %d segundos: %s",
+                            retries + 1,
+                            max_retries,
+                            wait_time,
+                            e,
+                        )
+                        time.sleep(wait_time)
+                    else:
+                        logging.error(
+                            "Se excedió el número máximo de reintentos para ServiceRequestError: %s", e
+                        )
+                        raise DocumentIntelligenceError(
+                            f"La solicitud de servicio falló después de múltiples reintentos: {e}"
+                        ) from e
+
+                except HttpResponseError as e:
+                    retries += 1
+                    if e.status_code == 429:
+                        if retries < max_retries:
+                            wait_time = retry_delay * (2 ** (retries - 1))
+                            logging.warning(
+                                "Demasiadas solicitudes (429) (intento %d de %d). Reintentando en %d segundos: %s",
+                                retries + 1,
+                                max_retries,
+                                wait_time,
+                                e,
+                            )
+                            time.sleep(wait_time)
+                        else:
+                            logging.error(
+                                "Se excedió el número máximo de reintentos para 429 Demasiadas solicitudes: %s", e
+                            )
+                            raise DocumentIntelligenceError(
+                                f"Demasiadas solicitudes (429) después de múltiples reintentos: {e}"
+                            ) from e
+                    elif retries < max_retries:
+                        wait_time = retry_delay * (2 ** (retries - 1))
+                        logging.warning(
+                            "HttpResponseError (intento %d de %d). Reintentando en %d segundos: %s",
+                            retries + 1,
+                            max_retries,
+                            wait_time,
+                            e,
+                        )
+                        time.sleep(wait_time)
+                    else:
+                        logging.error(
+                            "Se excedió el número máximo de reintentos para HttpResponseError: %s", e
+                        )
+                        raise DocumentIntelligenceError(
+                            f"Error HTTP después de múltiples reintentos: {e}"
+                        ) from e
+                except ClientAuthenticationError as e:
+                    logging.error("Error de autenticación: %s", e)
+                    raise DocumentIntelligenceError(f"Error de autenticación: {e}") from e
+                except Exception as e:
+                    if isinstance(e, NoContentExtractedError):
+                        logging.exception("No se extrajo contenido del documento: %s", e)
+                        raise
+                    else:
+                        logging.exception(
+                            "Error durante el análisis de documentos con Document Intelligence: %s",
+                            e,
+                        )
+                        raise DocumentIntelligenceError(
+                            f"Error al analizar el documento: {e}"
+                        ) from e
+
+        return wrapper
+
+    return decorator
+
+
+class DocumentIntelligenceAdapter:
+    """Adaptador para interactuar con Azure AI Document Intelligence."""
+
+    def __init__(
+        self,
+        endpoint: str,
+        api_key: str,
+    ):
+        """
+        Inicializa el DocumentIntelligenceAdapter con el punto de conexión y la clave de API.
+
+        Args:
+            endpoint (str): El punto de conexión de Document Intelligence.
+            api_key (str): La clave de API de Document Intelligence.
+
+        Raises:
+            ValueError: Si el punto de conexión o la clave de API son nulos o vacíos.
+        """
+        self.endpoint = endpoint
+        self.api_key = api_key
+
+        if not self.endpoint or not self.api_key:
+            raise ValueError(
+                "Endpoint o API Key para Document Intelligence no proporcionados."
+            )
+        self.client = self._create_client()
+
+    def _create_client(self) -> DocumentIntelligenceClient:
+        """Crea y configura el cliente de Document Intelligence.
+
+        Returns:
+            DocumentIntelligenceClient: Cliente de DocumentIntelligenceClient configurado.
+        """
+        return DocumentIntelligenceClient(
+            endpoint=self.endpoint, credential=AzureKeyCredential(self.api_key)
+        )
+
+    @_retry_on_service_error()
+    def analyze_cv(self, file_stream: BinaryIO) -> str:
+        """
+        Extrae texto de un CV utilizando Document Intelligence.
+
+        Args:
+            file_stream (BinaryIO): Un flujo binario que contiene el CV (PDF).
+
+        Returns:
+            str: El texto extraído del CV.
+
+        Raises:
+            FileProcessingError: Si hay un error al procesar el archivo.
+            DocumentIntelligenceError: Si hay un error al comunicarse con Document Intelligence.
+            NoContentExtractedError: Si no se extrajo ningún texto del CV.
+        """
+        try:
+            # "prebuilt-read" es el modelo más adecuado para extraer texto de un CV
+            poller = self.client.begin_analyze_document(
+                "prebuilt-read",
+                AnalyzeDocumentRequest(bytes_source=file_stream.read()),
+            )
+            result: AnalyzeResult = poller.result()
+
+            if result.content:
+                return result.content
+            else:
+                logging.warning("Document Intelligence no devolvió ningún contenido.")
+                raise NoContentExtractedError(
+                    "Document Intelligence no extrajo ningún contenido del documento."
+                )
+
+        except Exception as e:
+            if isinstance(e, NoContentExtractedError):
+                logging.exception("No se extrajo contenido del documento: %s", e)
+                raise
+            else:
+                logging.exception(
+                    "Error durante el análisis de documentos con Document Intelligence: %s",
+                    e,
+                )
+                raise DocumentIntelligenceError(
+                    f"Error al analizar el documento: {e}"
+                ) from e
+
+#openai
+#azure_openai_adapter.py
+import time
+import logging
+from functools import wraps
+from azure.identity import get_bearer_token_provider, ClientSecretCredential
+
+from openai import AzureOpenAI, RateLimitError, APIConnectionError, APIStatusError
+
+from src.domain.exceptions import OpenAIError
+
+MAX_TOKENS = 2048
+TEMPERATURE = 0.2
+TOP_P = 0.95
+FREQUENCY_PENALTY = 0
+PRESENCE_PENALTY = 0
+STOP = None
+STREAM = False
+
+AZURE_AI_SCOPES = "https://cognitiveservices.azure.com/.default"
+
+class AzureOpenAIAdapter:   
+    """
+    Adaptador para interactuar con el servicio Azure OpenAI. Maneja la autenticación,
+    los reintentos y el manejo de errores.
+    """
+
+    def __init__(
+        self,
+        endpoint: str,
+        api_version: str,
+        model: str,
+        deployment: str,
+        client_id:str,
+        client_secret:str,
+        tenant_id:str,
+    ):
+        """
+        Inicializa el AzureOpenAIAdapter con punto de conexión, versión de API,
+        nombre del modelo y nombre de la implementación (deployment) para autenticación Entra ID.
+
+        Args:
+            endpoint (str): Punto de conexión de Azure OpenAI.
+            api_version (str): Versión de API de Azure OpenAI.
+            model (str): Nombre del Modelo de OpenAI (ej: gpt-4.5, gpt-4.1-nano).
+            deployment (str): Nombre de la implementación (Deployment Name) en Azure OpenAI Studio.
+            client_id (str): ID del cliente (Client ID) de la Entidad de Servicio.
+            client_secret (str): Secreto del cliente (Client Secret) de la Entidad de Servicio.
+            tenant_id (str): ID del tenant (Tenant ID) de Azure AD (Entra ID).
+
+        Raises:
+           ValueError: Si falta alguna de las configuraciones requeridas.
+        OpenAIError: Si falla la creación del cliente AzureOpenAI.
+        """
+        self.endpoint = endpoint
+        self.api_version = api_version
+        self.model = model
+        self.deployment = deployment
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.tenant_id = tenant_id
+
+        missing_values = []
+
+        if not self.endpoint:
+            missing_values.append("endpoint")
+        if not self.api_version:
+            missing_values.append("api_version")
+        if not self.deployment:
+            missing_values.append("deployment")
+        if not self.client_id:
+            missing_values.append("client_id")
+        if not self.client_secret:
+             missing_values.append("client_secret")
+        if not self.tenant_id:
+            missing_values.append("tenant_id")
+
+        if missing_values:
+            error_message = "Faltan valores requeridos para el Azure Open AI Adapter: " + ", ".join(missing_values)
+            raise ValueError(error_message)
+
+        try:
+            # Create the client using Entra ID authentication
+            self.client = self._create_client()
+            logging.debug("AzureOpenAI client initialized with Entra ID.")
+        except Exception as e:
+             # Catch errors during client creation (e.g., CredentialUnavailableError from DefaultAzureCredential)
+             logging.critical(f"CRÍTICO: Falló la creación del cliente AzureOpenAI con Entra ID: {e}", exc_info=True)
+             raise OpenAIError(f"Falló la creación del cliente Azure OpenAI con Entra ID: {e}") from e
+
+    def _create_client(self) -> AzureOpenAI:
+        """
+        Crea y configura el cliente de Azure OpenAI utilizando autenticación Entra ID.
+
+        Returns:
+            AzureOpenAI: Cliente AzureOpenAI configurado.
+
+        Raises:
+            CredentialUnavailableError: If DefaultAzureCredential cannot find credentials.
+            Exception: For other unexpected errors during client setup.
+        """
+        credential = ClientSecretCredential(
+            tenant_id=self.tenant_id,
+            client_id=self.client_id,
+            client_secret=self.client_secret
+        )
+        logging.debug("ClientSecretCredential creado.")
+
+        token_provider = get_bearer_token_provider(
+            credential,
+            AZURE_AI_SCOPES
+        )
+        return AzureOpenAI(
+            azure_endpoint=self.endpoint, 
+            api_version=self.api_version,            
+            azure_ad_token_provider=token_provider,  
+        )
+
+    def _retry_on_rate_limit(max_retries: int = 3, retry_delay: int = 30):
+        """
+        Decorador para reintentar llamadas a la API en caso de RateLimitError.
+
+        Args:
+            max_retries (int): Número máximo de reintentos.
+            retry_delay (int): Retraso inicial en segundos entre reintentos.
+
+        Returns:
+            callable: Función decorada.
+        """
+
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                retries = 0
+                while retries < max_retries:
+                    try:
+                        return func(*args, **kwargs)
+                    except RateLimitError as e:
+                        retries += 1
+                        if retries < max_retries:
+                            wait_time = retry_delay * (2 ** (retries - 1))
+                            logging.warning(
+                                f"Se excedió el límite de tasa. Reintento {retries + 1} de {max_retries}. Reintentando en {wait_time} segundos."
+                            )
+                            time.sleep(wait_time)
+                        else:
+                            logging.error(
+                                f"Se excedió el número máximo de reintentos para llamadas a la API de OpenAI: {e}"
+                            )
+                            raise OpenAIError(
+                                f"Se excedió el límite de tasa después de múltiples reintentos: {e}", e
+                            )
+                    except APIConnectionError as e:
+                        logging.error(f"Error al conectar con la API de OpenAI: {e}")
+                        raise OpenAIError(f"Error de conexión: {e}", e)
+                    except APIStatusError as e:
+                        logging.error(
+                            f"La API de OpenAI devolvió el estado %s: %s",
+                            e.status_code,
+                            e.response,
+                        )
+                        raise OpenAIError(f"Error de estado de la API: {e}", e)
+                    except Exception as e:
+                        logging.error(f"Error durante la llamada a la API de OpenAI: {e}")
+                        raise OpenAIError(f"Error desconocido: {e}", e)
+
+            return wrapper
+
+        return decorator
+
+    @_retry_on_rate_limit()
+    def get_completion(self, system_message: str, user_message: str) -> str:
+        """
+        Obtiene una finalización de texto de Azure OpenAI.
+
+        Args:
+            system_message (str): El mensaje del sistema para guiar al modelo.
+            user_message (str): El mensaje del usuario para generar una finalización para.
+
+        Returns:
+            str: La finalización de texto generada por el modelo.
+
+        Raises:
+            OpenAIError: Si ocurre un error durante la llamada a la API o si la respuesta no es válida.
+        """
+        message_text = [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message},
+        ]
+        return self._create_completion(message_text)
+
+    def _create_completion(self, messages: list[dict]) -> str:
+        """
+        Función interna para crear la finalización (evita la duplicación).
+
+        Args:
+            messages (list[dict]): Lista de diccionarios de mensajes.
+
+        Returns:
+            str: El contenido del mensaje de finalización.
+
+        Raises:
+            OpenAIError: Si ocurre un error durante la llamada a la API o si la respuesta no es válida.
+        """
+        try:
+            completion = self.client.chat.completions.create(
+                model=self.deployment,
+                messages=messages,
+                temperature=TEMPERATURE,
+                max_tokens=MAX_TOKENS,
+                top_p=TOP_P,
+                frequency_penalty=FREQUENCY_PENALTY,
+                presence_penalty=PRESENCE_PENALTY,
+                stop=STOP,
+                stream=STREAM,
+            )
+
+            if (
+                completion.choices
+                and completion.choices[0].message
+                and completion.choices[0].message.content
+            ):
+                # Retorna el contenido como un mensaje (String)
+                return completion.choices[0].message.content
+            else:
+                logging.warning("OpenAI no devolvió contenido en las opciones.")
+                # Genera un error específico en lugar de una cadena vacía
+                raise OpenAIError(
+                    "OpenAI no devolvió opciones de finalización o contenido vacío."
+                )
+
+        except Exception as e:
+            # El decorador maneja la mayoría de los errores de API y los convierte en OpenAIError.
+            # Este bloque captura errores que ocurren *después* de la llamada o si el decorador falla.
+            # También lo volvemos a generar como OpenAIError para mantener la coherencia.
+            # Verificamos si ya es un OpenAIError para evitar envolverlo dos veces.
+            if isinstance(e, OpenAIError):
+                raise  # Si ya es un OpenAIError (probablemente del decorador), vuelva a generarlo.
+            else:
+                logging.exception(
+                    "Error durante la creación de la finalización o el progreso de OpenAI: %s", e
+                )
+                # Envuelve otras excepciones como OpenAIError
+                raise OpenAIError(f"Error en el proceso de finalización: {e}") from e    
+#domain
+
+# exceptions.py
+
+class DomainError(Exception):
+    """Clase base para excepciones específicas del domino."""
+    pass
+class InvalidCVError(DomainError):
+    """Se lanza cuando un CV no es valido, por ejemplo, texto vacio."""
+    pass
+class CVAnalysisError(DomainError):
+    """Clase base para errores relacionados con el análisis de CV."""
+    pass
+class OpenAIError(CVAnalysisError):
+    """Se lanza cuando hay un error en la comunicación con OpenAI"""
+    pass
+class JSONValidationError(CVAnalysisError):
+    """Se lanza cuando la respuesta JSON de OpenAI no es válida."""
+    pass
+class FileProcessingError(DomainError):
+    """Se lanza cuando hay un error al procesar un archivo, por ejemplo, al eliminar un PDF"""
+    pass
+class DocumentIntelligenceError(CVAnalysisError):
+    """Se lanza cuando hay un error al interactar con Document Intelligence"""
+    pass
+class NoContentExtractedError(CVAnalysisError):
+    """Se lanza cuando el Document Intelligence o extrae contenido de un documento."""
+    pass
+class APIError(DomainError):
+    """Se lanza cuando hay un error al interactuar con la API Rest"""
+    pass
+class AuthenticationError(DomainError):
+    """Se lanza cuando hay un error de autenticación con la API Rest"""
+    pass
+class KeyVaultError(DomainError):
+    """Clase base para errores relacionados con Azure Key Vault."""
+    pass
+class SecretNotFoundError(KeyVaultError):
+    """Se lanza cuando un secreto específico no se encuentra en Key Vault."""
+    pass
+
+
+#entities
+
+
+# api_credentials.py
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Optional
+
+@dataclass(frozen=True)
+class ApiCredentials:
+    """Representa las credenciales de acceso a la API REST (token y expiración)."""
+    token: str
+    expires_in: Optional[int] = None
+
+    def is_valid(self, margin_seconds: int = 60) -> bool:
+        """Verifica si el token es válido, considerando un margen de seguridad."""
+        if not self.token:
+            return False
+
+        if self.expires_in is None:
+            return True
+
+        expiration_time = datetime.now() + timedelta(seconds=self.expires_in)
+        return datetime.now() + timedelta(seconds=margin_seconds) < expiration_time
+
+
+.env.example
+
+#Azure Funciton Configuration
+FUNCTIONS_WORKER_RUNTIME=python
+
+#  Aplication Insights
+APPLICATIONINSIGHTS_CONNECTION_STRING=
+
+# Azure Blob Storage
+AzureWebJobsStorage=
+
+# KEY VAULT
+KEY_VAULT_URI=
